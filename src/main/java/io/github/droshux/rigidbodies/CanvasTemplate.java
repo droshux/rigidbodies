@@ -1,6 +1,7 @@
 package io.github.droshux.rigidbodies;
 
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -38,15 +39,16 @@ public class CanvasTemplate extends JFrame {
     private class CanvasDrawer extends JPanel {
         @Override
         public void paintComponent(Graphics g) {
-            super.paintComponent(g);
+            //super.paintComponent(g);
             setBackground(Color.WHITE);
 
+            System.out.println("Rendering");
             for (RigidBody r : Objects) {
                 DrawRigidbody(r, g);
             }
         }
 
-        public int[] WorldToScreenPos(Point p) {
+        public int @NotNull [] WorldToScreenPos(Point p) {
 
             double deltaX = p.x - CameraPos.x;
             double deltaY = p.y - CameraPos.y;
@@ -94,9 +96,9 @@ public class CanvasTemplate extends JFrame {
         long FrameStart = System.nanoTime();
 
         //CODE THAT RUNS EVERY FRAME
-        try {
+        /*try {
             java.util.Objects.requireNonNull(getRigidbodyByID("test1")).RotateDegrees(1);
-        } catch (NullPointerException e) {System.out.println("test1 does not exist");}
+        } catch (NullPointerException e) {System.out.println("test1 does not exist");}*/
 
         //canvas.repaint();
         //System.out.println("Canvas has been painted");

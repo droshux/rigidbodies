@@ -52,7 +52,7 @@ public class RigidBody {
     }
 
     //Rotate rigid-body by some angle in degrees
-    public void RotateDegrees(double theta) {
+    /*public void RotateDegrees(double theta) {
         int angle = 0;
         final double radian = (double)Math.toRadians(1);
         while (angle < theta) {
@@ -64,5 +64,14 @@ public class RigidBody {
                 }
             angle++;
         }
+    }*/
+
+    public void Rotate(double theta) {
+        for (Triangle t : Collider)
+            for (Point p : t.points) {
+                p.matrixTransform(
+                        Math.cos(theta), -Math.sin(theta),
+                        Math.sin(theta), Math.cos(theta));
+            }
     }
 }
