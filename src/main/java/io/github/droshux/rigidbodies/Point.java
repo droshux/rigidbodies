@@ -24,7 +24,9 @@ public class Point {
 
     public void matrixTransform(double ix, double jx,
                                 double iy, double jy) {
-        x = (ix * x) + (jx * y);
-        y = (iy * x) + (jy  * y);
+        double xOUT = (ix * x) + (jx * y);
+        double yOUT = (iy * x) + (jy  * y);
+
+        x = xOUT; y=yOUT;
     }
 }
