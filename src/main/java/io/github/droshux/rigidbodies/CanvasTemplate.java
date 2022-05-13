@@ -53,8 +53,8 @@ public class CanvasTemplate extends JFrame {
             double deltaX = p.x - CameraPos.x;
             double deltaY = p.y - CameraPos.y;
             int[] out = new int[2];
-            out[0] = (int) Math.round(deltaX * pixelsPerMeter + (CANVAS_WIDTH/2));
-            out[1] = (int) Math.round(deltaY * pixelsPerMeter + (CANVAS_HEIGHT / 2));
+            out[0] = (int) Math.round(deltaX * pixelsPerMeter + (CANVAS_WIDTH/2f));
+            out[1] = (int) Math.round(deltaY * pixelsPerMeter + (CANVAS_HEIGHT / 2f));
             return out;
         }
 
@@ -64,7 +64,7 @@ public class CanvasTemplate extends JFrame {
             //Repeat for every triangle in the mesh
             for (Triangle t : rb.Collider) {
 
-                //Create lists of x and y coords
+                //Create lists of x and y coordinates
                 List<Integer> xPoints = new ArrayList<>(); List<Integer> yPoints = new ArrayList<>();
                 for (Point p : t.points) {
                     Point vertexPos = new Point(rb.Position.x + p.x, rb.Position.y + p.y);
@@ -72,7 +72,7 @@ public class CanvasTemplate extends JFrame {
                     yPoints.add(WorldToScreenPos(vertexPos)[1]);
                 }
 
-                //Copy lists to arrays to convert Integer to int (Don't ask)
+                //Copy lists to array to convert Integer to int (Don't ask)
                 int[] x = new int[xPoints.size()];
                 for (int i = 0; i < x.length; i++) x[i] = xPoints.get(i);
                 int[] y = new int[yPoints.size()];
