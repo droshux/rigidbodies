@@ -26,7 +26,7 @@ public class Utils {
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {
-            Scanner fileReader = new Scanner(new File(pathToMeshes + filePath)); //Create file reader
+            Scanner fileReader = new Scanner(new File(pathToMeshes + filePath + ".txt")); //Create file reader
             List<Triangle> out = new ArrayList<>(); //Create a new list of triangles
             while (fileReader.hasNextLine()) {
                 String data = fileReader.nextLine(); //Get the line

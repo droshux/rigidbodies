@@ -12,8 +12,6 @@ public class CanvasTemplate extends Canvas implements Runnable{
     final private JFrame frame;
 
     private final int CANVAS_WIDTH = 640, CANVAS_HEIGHT = 480;
-    private int x = 20;
-    private int y = 20;
 
     private boolean running = false;
 
@@ -31,17 +29,16 @@ public class CanvasTemplate extends Canvas implements Runnable{
 
         frame.add(this);
         frame.setVisible(true);
-
-        start();
     }
 
-    private void start() {
+    public void start() {
         if(!running) {
             running = true;
             new Thread(this).start();
         }
     }
 
+    @SuppressWarnings("unused")
     private void stop() {
         running = false;
     }
@@ -70,13 +67,14 @@ public class CanvasTemplate extends Canvas implements Runnable{
         }
     }
 
-    private void tick(double delta) {
+    private void tick(@SuppressWarnings("unused") double delta) {
         for (RigidBody rb : Objects) {
             rb.Rotate(Math.toRadians(1));
-            rb.Position = new Point(rb.Position.x + (0.01*delta), rb.Position.y + (0.01*delta));
+            //rb.Position = new Point(rb.Position.x + (0.01*delta), rb.Position.y + (0.01*delta));
         }
     }
 
+    @SuppressWarnings("BusyWait")
     @Override
     public void run() {
         int desiredTPS = 60; //Target ticks per second

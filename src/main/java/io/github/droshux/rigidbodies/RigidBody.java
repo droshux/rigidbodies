@@ -10,23 +10,13 @@ public class RigidBody {
     public String id;
     public  Triangle[] Collider;
     public Point Position;
-    public float Mass; //In kilograms
+    public double Mass; //In kilograms
     public Color Colour;
-    //private float Density; //In kilograms per meter squared
 
-    public RigidBody(String id, float mass, Point position, Color col, Triangle[] collider) {
-        this.id = id; this.Mass = mass; this.Position = position; this.Collider = collider; this.Colour = col;
-        Point COM = CenterOfMass();
-        //Translate all coordinates so that 0,0 is COM
-        for (Triangle t : Collider) for (Point p : t.points) {
-                p.x -= COM.x;
-                p.y -= COM.y;
-        }
+    public CanvasTemplate canvas;
 
-        Program.Canvas.Objects.add(this);
-    }
-    public RigidBody(String id, float mass, Point position, Color col, String colliderFile) {
-        this.id = id; this.Mass = mass; this.Position = position; this.Colour = col;
+    public RigidBody(String id, float mass, Point position, Color col, String colliderFile, CanvasTemplate canvasTemplate) {
+        this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate;
         this.Collider = Utils.getMeshFromFile(colliderFile);
 
         Point COM = CenterOfMass();
@@ -36,7 +26,7 @@ public class RigidBody {
             p.y -= COM.y;
         }
 
-        Program.Canvas.Objects.add(this);
+        canvas.Objects.add(this);
     }
 
     public Point CenterOfMass() {
@@ -50,21 +40,6 @@ public class RigidBody {
         totalX /= MeshPoints.size(); totalY /= MeshPoints.size();
         return new Point(totalX, totalY); //Return :)
     }
-
-    //Rotate rigid-body by some angle in degrees
-    /*public void RotateDegrees(double theta) {
-        int angle = 0;
-        final double radian = (double)Math.toRadians(1);
-        while (angle < theta) {
-            for (Triangle t : Collider)
-                for (Point p : t.points) {
-                    p.matrixTransform(
-                            Math.cos(radian), -Math.sin(radian),
-                            Math.sin(radian), Math.cos(radian));
-                }
-            angle++;
-        }
-    }*/
 
     public void Rotate(double theta) {
         for (Triangle t : Collider)
