@@ -13,9 +13,16 @@ import java.util.Scanner;
 public class Utils {
 
     public static final String pathToMeshes = "src/main/resources/meshes/";
+    public static final Vector g = new Vector(0, -9.81);
 
     public static Vector VectorAdd(Vector v1, Vector v2) {
         return new Vector(v1.x + v2.x, v1.y + v2.y);
+    }
+    public static Vector VectorScalarMultiply(Vector v1, double Scalar) {
+        /*Vector tempVector = new Vector(0, 0);
+        tempVector.setDirectionAndMagnitude(tempVector.getDirection(), tempVector.getMagnitude() * Scalar);
+        return tempVector;*/
+        return new Vector(v1.x * Scalar, v1.y * Scalar);
     }
 
     public static float Round(double input, int sf) {

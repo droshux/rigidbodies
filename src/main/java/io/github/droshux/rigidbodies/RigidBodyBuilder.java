@@ -8,6 +8,7 @@ public class RigidBodyBuilder {
 	private Point position;
 	private Color colour;
 	private String colliderFile;
+	private boolean useGravity;
 	private final CanvasTemplate canvasTemplate;
 
 	public RigidBodyBuilder(CanvasTemplate canvas) {
@@ -39,8 +40,13 @@ public class RigidBodyBuilder {
 		return this;
 	}
 
+	public RigidBodyBuilder setGravity(boolean useGravity) {
+		this.useGravity = useGravity;
+		return this;
+	}
+
 	@SuppressWarnings("UnusedReturnValue")
 	public RigidBody createRigidBody() {
-		return new RigidBody(id, mass, position, colour, colliderFile, canvasTemplate);
+		return new RigidBody(id, mass, position, colour, colliderFile, canvasTemplate, useGravity);
 	}
 }

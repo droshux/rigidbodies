@@ -12,6 +12,7 @@ public class Program {
                 .setPosition(new Point(0, 0))
                 .setColour(Color.BLUE)
                 .setColliderFile("mesh2")
+                .setGravity(true)
                 .createRigidBody();
         Canvas.start();
     }

@@ -17,7 +17,7 @@ public class CanvasTemplate extends Canvas implements Runnable{
 
     public List<RigidBody> Objects = new ArrayList<>();
     public Point CameraPos = new Point(0,0);
-    public int pixelsPerMeter = 100;
+    public final int pixelsPerMeter = 50;
 
     public CanvasTemplate() {
         frame = new JFrame("FPS: ~ TPS: ~");
@@ -69,8 +69,7 @@ public class CanvasTemplate extends Canvas implements Runnable{
 
     private void tick(@SuppressWarnings("unused") double delta) {
         for (RigidBody rb : Objects) {
-            rb.RotateAboutPoint(new Point(-1, -1), Math.toRadians(1)*delta);
-            //rb.Position = new Point(rb.Position.x + (0.01*delta), rb.Position.y + (0.01*delta));
+            rb.Update(delta/1000);
         }
     }
 

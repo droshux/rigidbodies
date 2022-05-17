@@ -11,12 +11,17 @@ public class RigidBody {
     public  Triangle[] Collider;
     public Point Position;
     public double Mass; //In kilograms
+    public final boolean UseGravity;
     public Color Colour;
 
     public CanvasTemplate canvas;
 
-    public RigidBody(String id, float mass, Point position, Color col, String colliderFile, CanvasTemplate canvasTemplate) {
-        this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate;
+    public List<Vector> Forces = new ArrayList<>();
+    public Vector Velocity = new Vector(0,0);
+    public Vector Weight;
+
+    public RigidBody(String id, float mass, Point position, Color col, String colliderFile, CanvasTemplate canvasTemplate, boolean useGravity) {
+        this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate; this.UseGravity=useGravity;
         this.Collider = Utils.getMeshFromFile(colliderFile);
 
         Point COM = CenterOfMass();
@@ -25,6 +30,7 @@ public class RigidBody {
             p.x -= COM.x;
             p.y -= COM.y;
         }
+        if (UseGravity) Weight = Utils.VectorScalarMultiply(Utils.g, Mass);
 
         canvas.Objects.add(this);
     }
@@ -55,6 +61,7 @@ public class RigidBody {
     @SuppressWarnings("unused")
     private Point WorldToLocalSpace(Point p) {return new Point(p.x-this.Position.x, p.y-this.Position.y);}
 
+    @SuppressWarnings("unused")
     public void RotateAboutPoint(Point point, double theta) {
         for (Triangle t : Collider) for (Point p : t.points) {
             p.x -= point.x;
@@ -65,5 +72,15 @@ public class RigidBody {
             p.x += point.x;
             p.y += point.y;
         }
+    }
+
+    public void Update(double delta) {
+        if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
+        Vector acceleration = new Vector(0,0);
+        for (Vector F : Forces) {
+            acceleration = Utils.VectorAdd(acceleration, Utils.VectorScalarMultiply(F, 1/Mass)); //F=ma therefore a=F/m
+        }
+        Velocity = Utils.VectorAdd(Velocity, Utils.VectorScalarMultiply(acceleration, delta));
+        this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
     }
 }
