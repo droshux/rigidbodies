@@ -5,7 +5,7 @@ import java.awt.*;
 public class Program {
 
     public static void main(String[] args) {
-        CanvasTemplate Canvas = new CanvasTemplate();
+        Canvas Canvas = new Canvas();
         new RigidBodyBuilder(Canvas)
                 .setId("test1")
                 .setMass(5)
@@ -15,13 +15,13 @@ public class Program {
                 .setGravity(true)
                 .createRigidBody();
 
-        new RigidBodyBuilder(Canvas)
+        /*new RigidBodyBuilder(Canvas)
                 .setId("Ruler")
                 .setGravity(false)
                 .setColliderFile("mesh1")
                 .setColour(Color.BLACK)
                 .setPosition(new Point(0,0))
-                .createRigidBody();
+                .createRigidBody();*/
         Canvas.start();
     }
 }

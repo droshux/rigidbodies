@@ -9,9 +9,9 @@ public class RigidBodyBuilder {
 	private Color colour;
 	private String colliderFile;
 	private boolean useGravity;
-	private final CanvasTemplate canvasTemplate;
+	private final Canvas canvasTemplate;
 
-	public RigidBodyBuilder(CanvasTemplate canvas) {
+	public RigidBodyBuilder(Canvas canvas) {
 		this.canvasTemplate = canvas;
 	}
 

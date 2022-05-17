@@ -7,11 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 //Code lazily copy-pasted from https://gist.github.com/iiAtlas/4122531
-public class CanvasTemplate extends Canvas implements Runnable{
+public class Canvas extends java.awt.Canvas implements Runnable{
 
     final private JFrame frame;
 
-    private final int CANVAS_WIDTH = 640, CANVAS_HEIGHT = 480;
+    @SuppressWarnings("FieldCanBeLocal")
+    private final int CANVAS_WIDTH = 640, CANVAS_HEIGHT = 480, FPS = 60;
 
     private boolean running = false;
 
@@ -19,7 +20,7 @@ public class CanvasTemplate extends Canvas implements Runnable{
     public Point CameraPos = new Point(0,0);
     public final int pixelsPerMeter = 50;
 
-    public CanvasTemplate() {
+    public Canvas() {
         frame = new JFrame("FPS: ~ TPS: ~");
         frame.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
         frame.setResizable(false);
@@ -76,11 +77,10 @@ public class CanvasTemplate extends Canvas implements Runnable{
     @SuppressWarnings("BusyWait")
     @Override
     public void run() {
-        int desiredTPS = 60; //Target ticks per second
 
         long lastTime = System.currentTimeMillis(); //Time since we last looped (tick + draw), initialized here to the current time
         long secondTime = lastTime + 1000; //Target time one second ahead of when we last updated fps/tps
-        double msPerTick = 1000d / desiredTPS; //Milliseconds expected in a single tick
+        double msPerTick = 1000d / FPS; //Milliseconds expected in a single tick
 
         int frames = 0, ticks = 0; //Used for counting frames and ticks while in between seconds, later used to set fps and tps
         double delta = 0; //Represents the time passed since last tick
@@ -126,7 +126,7 @@ public class CanvasTemplate extends Canvas implements Runnable{
     public int[] WorldToScreenPos(Point p) {
 
         double deltaX = p.x - CameraPos.x;
-        double deltaY = p.y - CameraPos.y;
+        double deltaY = CameraPos.y - p.y;
         int[] out = new int[2];
         out[0] = (int) Math.round(deltaX * pixelsPerMeter + (CANVAS_WIDTH/2f));
         out[1] = (int) Math.round(deltaY * pixelsPerMeter + (CANVAS_HEIGHT / 2f));

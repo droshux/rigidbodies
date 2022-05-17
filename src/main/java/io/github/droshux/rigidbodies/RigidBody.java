@@ -14,13 +14,13 @@ public class RigidBody {
     public final boolean UseGravity;
     public Color Colour;
 
-    public CanvasTemplate canvas;
+    public Canvas canvas;
 
     public List<Vector> Forces = new ArrayList<>();
     public Vector Velocity = new Vector(0,0);
     public Vector Weight;
 
-    public RigidBody(String id, float mass, Point position, Color col, String colliderFile, CanvasTemplate canvasTemplate, boolean useGravity) {
+    public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity) {
         this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate; this.UseGravity=useGravity;
         this.Collider = Utils.getMeshFromFile(colliderFile);
 
@@ -82,6 +82,5 @@ public class RigidBody {
         }
         Velocity = Utils.VectorAdd(Velocity, acceleration); //Utils.VectorScalarMultiply(acceleration, delta)
         this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
-        System.out.println(Velocity);
     }
 }
