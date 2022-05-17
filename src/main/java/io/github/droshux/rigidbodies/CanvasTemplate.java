@@ -69,7 +69,7 @@ public class CanvasTemplate extends Canvas implements Runnable{
 
     private void tick(@SuppressWarnings("unused") double delta) {
         for (RigidBody rb : Objects) {
-            rb.Rotate(Math.toRadians(1));
+            rb.RotateAboutPoint(new Point(-1, -1), Math.toRadians(1)*delta);
             //rb.Position = new Point(rb.Position.x + (0.01*delta), rb.Position.y + (0.01*delta));
         }
     }

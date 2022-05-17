@@ -49,4 +49,21 @@ public class RigidBody {
                         Math.sin(theta), Math.cos(theta));
             }
     }
+
+    @SuppressWarnings("unused")
+    private Point LocalToWorldSpace(Point p) {return new Point(this.Position.x + p.x, this.Position.y + p.y);}
+    @SuppressWarnings("unused")
+    private Point WorldToLocalSpace(Point p) {return new Point(p.x-this.Position.x, p.y-this.Position.y);}
+
+    public void RotateAboutPoint(Point point, double theta) {
+        for (Triangle t : Collider) for (Point p : t.points) {
+            p.x -= point.x;
+            p.y -= point.y;
+        }
+        Rotate(theta);
+        for (Triangle t : Collider) for (Point p : t.points) {
+            p.x += point.x;
+            p.y += point.y;
+        }
+    }
 }
