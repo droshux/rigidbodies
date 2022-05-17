@@ -80,7 +80,8 @@ public class RigidBody {
         for (Vector F : Forces) {
             acceleration = Utils.VectorAdd(acceleration, Utils.VectorScalarMultiply(F, 1/Mass)); //F=ma therefore a=F/m
         }
-        Velocity = Utils.VectorAdd(Velocity, Utils.VectorScalarMultiply(acceleration, delta));
+        Velocity = Utils.VectorAdd(Velocity, acceleration); //Utils.VectorScalarMultiply(acceleration, delta)
         this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
+        System.out.println(Velocity);
     }
 }
