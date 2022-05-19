@@ -18,7 +18,7 @@ public class Canvas extends java.awt.Canvas implements Runnable{
 
     public List<RigidBody> Objects = new ArrayList<>();
     public Point CameraPos = new Point(0,0);
-    public final int pixelsPerMeter = 50;
+    public final int pixelsPerMeter = 25;
 
     public Canvas() {
         frame = new JFrame("FPS: ~ TPS: ~");

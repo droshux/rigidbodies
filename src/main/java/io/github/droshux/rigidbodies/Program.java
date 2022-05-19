@@ -15,13 +15,14 @@ public class Program {
                 .setGravity(true)
                 .createRigidBody();
 
-        /*new RigidBodyBuilder(Canvas)
-                .setId("Ruler")
+        new RigidBodyBuilder(Canvas)
+                .setId("floor")
+                .setMass(1000)
+                .setPosition(new Point(0, -5))
+                .setColour(Color.DARK_GRAY)
                 .setGravity(false)
-                .setColliderFile("mesh1")
-                .setColour(Color.BLACK)
-                .setPosition(new Point(0,0))
-                .createRigidBody();*/
+                .setColliderFile("floor")
+                .createRigidBody();
         Canvas.start();
     }
 }

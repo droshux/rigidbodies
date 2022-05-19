@@ -4,6 +4,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RigidBody {
@@ -31,7 +32,6 @@ public class RigidBody {
             p.y -= COM.y;
         }
         if (UseGravity) Weight = Utils.VectorScalarMultiply(Utils.g, Mass);
-
         canvas.Objects.add(this);
     }
 
@@ -80,7 +80,40 @@ public class RigidBody {
         for (Vector F : Forces) {
             acceleration = Utils.VectorAdd(acceleration, Utils.VectorScalarMultiply(F, 1/Mass)); //F=ma therefore a=F/m
         }
-        Velocity = Utils.VectorAdd(Velocity, acceleration); //Utils.VectorScalarMultiply(acceleration, delta)
+        Velocity = Utils.VectorAdd(Velocity, acceleration);
+        if (Objects.equals(id, "test1")) {
+            List<Point[]> colliderLines = getColliderLines(delta);
+            if (colliderLines.size() != 0) {
+                Colour = Color.RED;
+            } else Colour = Color.BLUE;
+        }
         this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
+    }
+
+    private List<Point[]> getColliderLines(double delta) {
+        List<Point[]> colliderLines = new ArrayList<>();
+        for (Triangle t : Collider) for (Point p : t.points) {
+            double r = Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
+            double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
+            int[][] permutations = {
+                    {0, 1},
+                    {0, 2},
+                    {1, 2}
+            };
+            for (RigidBody rb : canvas.Objects) for (Triangle otherT : rb.Collider) for (int[] line : permutations) {
+                if (rb != this) {
+                    Point p1 = rb.LocalToWorldSpace(otherT.points[line[0]]); Point p2 = rb.LocalToWorldSpace(otherT.points[line[1]]);
+                    double gradient = Utils.getGradient(p1, p2); double intercept = Utils.get_Y_intercept(p1, p2);
+                    //Now we have all the pieces to find the a, b and c for the discriminant
+                    double a = Math.pow(gradient, 2) + 1;
+                    double b = (2 * gradient * intercept) - (2 * gradient * yPos) - (2* xPos);
+                    double c = Math.pow(xPos, 2) + Math.pow(yPos, 2) + Math.pow(intercept, 2) - (2 * yPos * intercept) - Math.pow(r, 2);
+                    //Time to calculate discriminant
+                    double discriminant = Math.pow(b, 2) - (4 * a * c);
+                    if (discriminant >= 0) colliderLines.add(new Point[] {p1, p2}); //If the discriminant is less than 0 the line intersects the circle
+                }
+            }
+        }
+        return colliderLines;
     }
 }
