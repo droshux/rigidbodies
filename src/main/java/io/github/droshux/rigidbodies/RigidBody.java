@@ -61,6 +61,7 @@ public class RigidBody {
 
     @SuppressWarnings("unused")
     private Point LocalToWorldSpace(Point p) {return new Point(this.Position.x + p.x, this.Position.y + p.y);}
+    private MovingPoint LocalToWorldSpace(MovingPoint p) {return new MovingPoint(this.Position.x + p.x, this.Position.y + p.y, p.Velocity);}
     @SuppressWarnings("unused")
     private Point WorldToLocalSpace(Point p) {return new Point(p.x-this.Position.x, p.y-this.Position.y);}
 
@@ -126,15 +127,21 @@ public class RigidBody {
     }
 
     private void ReflectPoint(Collision collision) {
-        Point p = LocalToWorldSpace(collision.point);
+        MovingPoint p = LocalToWorldSpace(collision.point);
         double dx = collision.line[1].x - collision.line[0].x;
         double dy = collision.line[1].y - collision.line[0].y;
-        Vector normal1 = new Vector(-dy, dx); Vector normal2 = new Vector(dy, -dx); Vector normal;
+        Vector normal;
+        Point prevLocation = new Point(p.x - p.Velocity.x, p.y - p.Velocity.y);
+        if (prevLocation.y > Utils.linearFunction(prevLocation, collision.line)) normal = new Vector(-dy, dx);
+        else normal = new Vector(dy, -dx);
 
+        double theta = normal.getDirection() - Utils.AngleBetween(p.Velocity, normal);
+        Vector reflectionVector = new Vector(p.Velocity.getMagnitude(), theta);
+        System.out.println(reflectionVector);
     }
 
     private static class Collision {
-        public Point point; public Point[] line;
-        public Collision(Point p, Point[] l) {point = p; line = l;}
+        public MovingPoint point; public Point[] line;
+        public Collision(MovingPoint p, Point[] l) {point = p; line = l;}
     }
 }

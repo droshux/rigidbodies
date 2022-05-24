@@ -18,12 +18,9 @@ public class Utils {
     public static Vector VectorAdd(Vector v1, Vector v2) {
         return new Vector(v1.x + v2.x, v1.y + v2.y);
     }
-    public static Vector VectorScalarMultiply(Vector v1, double Scalar) {
-        /*Vector tempVector = new Vector(0, 0);
-        tempVector.setDirectionAndMagnitude(tempVector.getDirection(), tempVector.getMagnitude() * Scalar);
-        return tempVector;*/
-        return new Vector(v1.x * Scalar, v1.y * Scalar);
-    }
+    public static Vector VectorScalarMultiply(Vector v1, double Scalar) {return new Vector(v1.x * Scalar, v1.y * Scalar);}
+    public static double Dot(Vector v1, Vector v2) {return v1.x * v2.x + v1.y * v2.y;}
+    public static double AngleBetween(Vector v1, Vector v2) {return Math.acos(Dot(v1, v2) / (v1.getMagnitude() * v2.getMagnitude()));}
 
     public static double Round(double input, int sf) {
         BigDecimal bigDecimal = new BigDecimal(input);
@@ -33,6 +30,7 @@ public class Utils {
 
     public static double getGradient(Point p1, Point p2) {return Math.abs(p1.y - p2.y) / Math.abs(p1.x - p2.x);}
     public static double get_Y_intercept(Point p1, Point p2) {return p1.y - getGradient(p1, p2) * p1.x;}
+    public static double linearFunction(Point p, Point[] line) {return p.x * getGradient(line[0], line[1]) + get_Y_intercept(line[0], line[1]);}
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {
