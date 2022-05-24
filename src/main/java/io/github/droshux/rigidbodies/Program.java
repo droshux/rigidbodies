@@ -20,7 +20,7 @@ public class Program {
         new RigidBodyBuilder(Canvas)
                 .setId("floor")
                 .setMass(1000)
-                .setPosition(new Point(0, -5))
+                .setPosition(new Point(0, -3))
                 .setColour(Color.DARK_GRAY)
                 .setGravity(false)
                 .setColliderFile("floor")

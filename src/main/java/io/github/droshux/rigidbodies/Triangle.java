@@ -1,14 +1,14 @@
 package io.github.droshux.rigidbodies;
 
 public class Triangle {
-    public Point[] points = new Point[3];
-    public Triangle(Point p1, Point p2, Point p3) {
+    public MovingPoint[] points = new MovingPoint[3];
+    public Triangle(MovingPoint p1, MovingPoint p2, MovingPoint p3) {
         points[0] = p1; points[1] = p2; points[2] = p3;
     }
     public Triangle(double x1, double y1, double x2, double y2, double x3, double y3) {
-        points[0] = new Point(x1, y1);
-        points[1] = new Point(x2, y2);
-        points[2] = new Point(x3, y3);
+        points[0] = new MovingPoint(x1, y1);
+        points[1] = new MovingPoint(x2, y2);
+        points[2] = new MovingPoint(x3, y3);
     }
 
     //Get the area of an arbitrary 3 points or the triangle itself

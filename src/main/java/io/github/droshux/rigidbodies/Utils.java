@@ -45,7 +45,7 @@ public class Utils {
                 int counter = 0;
                 for (String p : points) { //Iterate through points in the line
                     p = p.replace("(", ""); p = p.replace(")", ""); //Clean up the point
-                    t.points[counter++] = new Point(Float.parseFloat(p.split(",")[0]), Float.parseFloat(p.split(",")[1])); //Store the point in the triangle
+                    t.points[counter++] = new MovingPoint(Float.parseFloat(p.split(",")[0]), Float.parseFloat(p.split(",")[1])); //Store the point in the triangle
                 }
                 out.add(t); //Add the triangle to the mesh
             }

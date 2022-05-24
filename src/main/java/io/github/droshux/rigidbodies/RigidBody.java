@@ -20,7 +20,6 @@ public class RigidBody {
     public Canvas canvas;
 
     public List<Vector> Forces = new ArrayList<>();
-    public Vector Velocity = new Vector(0,0);
     public Vector Weight;
 
     public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity, double elasticity, double rigidity) {
@@ -28,10 +27,12 @@ public class RigidBody {
         this.Collider = Utils.getMeshFromFile(colliderFile);
 
         Point COM = CenterOfMass();
-        //Translate all coordinates so that 0,0 is COM
+        //Translate all coordinates so that 0,0 is COM oh and also go to world space
         for (Triangle t : Collider) for (Point p : t.points) {
             p.x -= COM.x;
             p.y -= COM.y;
+            Point q = LocalToWorldSpace(p);
+            p.x = q.x; p.y = q.y;
         }
         if (UseGravity) Weight = Utils.VectorScalarMultiply(Utils.g, Mass);
         canvas.Objects.add(this);
@@ -82,7 +83,9 @@ public class RigidBody {
         for (Vector F : Forces) {
             acceleration = Utils.VectorAdd(acceleration, Utils.VectorScalarMultiply(F, 1/Mass)); //F=ma therefore a=F/m
         }
-        Velocity = Utils.VectorAdd(Velocity, acceleration);
+        for (Triangle t: Collider) for (MovingPoint p : t.points) {
+            p.Velocity = Utils.VectorAdd(p.Velocity, acceleration);
+        }
         if (Objects.equals(id, "test1")) {
             List<Collision> collisions = getCollisions(delta);
             if (collisions.size() != 0) {
@@ -90,13 +93,15 @@ public class RigidBody {
                 for (Collision c : collisions) ReflectPoint(c);
             } else Colour = Color.BLUE;
         }
-        this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
+        for (Triangle t : Collider) for (MovingPoint p : t.points) {
+            p.x += p.Velocity.x * delta; p.y += p.Velocity.y * delta;
+        }
     }
 
     private List<Collision> getCollisions(double delta) {
         List<Collision> colliderLines = new ArrayList<>();
-        for (Triangle t : Collider) for (Point p : t.points) {
-            double r = Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
+        for (Triangle t : Collider) for (MovingPoint p : t.points) {
+            double r = p.Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
             double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
             int[][] permutations = {
                     {0, 1},
