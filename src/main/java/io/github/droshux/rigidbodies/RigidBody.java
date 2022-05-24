@@ -14,6 +14,8 @@ public class RigidBody {
     public double Mass; //In kilograms
     public final boolean UseGravity;
     public Color Colour;
+    public double elasticity;
+    public double rigidity;
 
     public Canvas canvas;
 
@@ -21,8 +23,8 @@ public class RigidBody {
     public Vector Velocity = new Vector(0,0);
     public Vector Weight;
 
-    public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity) {
-        this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate; this.UseGravity=useGravity;
+    public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity, double elasticity, double rigidity) {
+        this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate; this.UseGravity=useGravity; this.elasticity = elasticity; this.rigidity = rigidity;
         this.Collider = Utils.getMeshFromFile(colliderFile);
 
         Point COM = CenterOfMass();
@@ -82,16 +84,17 @@ public class RigidBody {
         }
         Velocity = Utils.VectorAdd(Velocity, acceleration);
         if (Objects.equals(id, "test1")) {
-            List<Point[]> colliderLines = getColliderLines(delta);
-            if (colliderLines.size() != 0) {
+            List<Collision> collisions = getCollisions(delta);
+            if (collisions.size() != 0) {
                 Colour = Color.RED;
+                for (Collision c : collisions) ReflectPoint(c);
             } else Colour = Color.BLUE;
         }
         this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
     }
 
-    private List<Point[]> getColliderLines(double delta) {
-        List<Point[]> colliderLines = new ArrayList<>();
+    private List<Collision> getCollisions(double delta) {
+        List<Collision> colliderLines = new ArrayList<>();
         for (Triangle t : Collider) for (Point p : t.points) {
             double r = Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
             double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
@@ -110,10 +113,23 @@ public class RigidBody {
                     double c = Math.pow(xPos, 2) + Math.pow(yPos, 2) + Math.pow(intercept, 2) - (2 * yPos * intercept) - Math.pow(r, 2);
                     //Time to calculate discriminant
                     double discriminant = Math.pow(b, 2) - (4 * a * c);
-                    if (discriminant >= 0) colliderLines.add(new Point[] {p1, p2}); //If the discriminant is less than 0 the line intersects the circle
+                    if (discriminant >= 0) colliderLines.add(new Collision(p, new Point[] {p1, p2})); //If the discriminant is less than 0 the line intersects the circle
                 }
             }
         }
         return colliderLines;
+    }
+
+    private void ReflectPoint(Collision collision) {
+        Point p = LocalToWorldSpace(collision.point);
+        double dx = collision.line[1].x - collision.line[0].x;
+        double dy = collision.line[1].y - collision.line[0].y;
+        Vector normal1 = new Vector(-dy, dx); Vector normal2 = new Vector(dy, -dx); Vector normal;
+
+    }
+
+    private static class Collision {
+        public Point point; public Point[] line;
+        public Collision(Point p, Point[] l) {point = p; line = l;}
     }
 }

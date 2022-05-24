@@ -13,6 +13,8 @@ public class Program {
                 .setColour(Color.BLUE)
                 .setColliderFile("mesh2")
                 .setGravity(true)
+                .setElasticity(1)
+                .setRigidity(0)
                 .createRigidBody();
 
         new RigidBodyBuilder(Canvas)
