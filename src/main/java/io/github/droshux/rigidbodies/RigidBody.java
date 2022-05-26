@@ -121,6 +121,7 @@ public class RigidBody {
         return colliderLines;
     }
 
+    //https://stackoverflow.com/questions/573084/how-to-calculate-bounce-angle?noredirect=1&lq=1
     private void ReflectPoint(Collision collision) {
         MovingPoint p = LocalToWorldSpace(collision.point);
         double dx = collision.line[1].x - collision.line[0].x;
