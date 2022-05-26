@@ -87,13 +87,8 @@ public class RigidBody {
         for (Triangle t: Collider) for (MovingPoint p : t.points) {
             p.Velocity = Utils.VectorAdd(p.Velocity, acceleration);
         }
-        if (Objects.equals(id, "test1")) {
-            List<Collision> collisions = getCollisions(delta);
-            if (collisions.size() != 0) {
-                Colour = Color.RED;
-                for (Collision c : collisions) ReflectPoint(c);
-            } else Colour = Color.BLUE;
-        }
+        List<Collision> collisions = getCollisions(delta);
+        for (Collision c : collisions) ReflectPoint(c);
         for (Triangle t : Collider) for (MovingPoint p : t.points) {
             p.x += p.Velocity.x * delta; p.y += p.Velocity.y * delta;
         }
@@ -134,10 +129,17 @@ public class RigidBody {
         Point prevLocation = new Point(p.x - p.Velocity.x, p.y - p.Velocity.y);
         if (prevLocation.y > Utils.linearFunction(prevLocation, collision.line)) normal = new Vector(-dy, dx);
         else normal = new Vector(dy, -dx);
+        Vector u = Utils.VectorScalarMultiply(normal, (Utils.Dot(p.Velocity, normal) / Utils.Dot(normal, normal)));
+        Vector w = Utils.VectorSubtract(p.Velocity, u);
 
-        double theta = normal.getDirection() - Utils.AngleBetween(p.Velocity, normal);
-        Vector reflectionVector = new Vector(p.Velocity.getMagnitude(), theta);
-        System.out.println(reflectionVector);
+        //TODO if I add a friction system make sure to multiply w by the coefficient of friction
+        Vector reflectVelocity = Utils.VectorSubtract(w, Utils.VectorScalarMultiply(u, elasticity));
+        collision.point.Velocity = reflectVelocity;
+        for (Triangle t : Collider) for (MovingPoint point : t.points) {
+            if (!point.equals(p)) {
+                point.Velocity = Utils.VectorAdd(point.Velocity, Utils.VectorScalarMultiply(reflectVelocity, rigidity));
+            }
+        }
     }
 
     private static class Collision {

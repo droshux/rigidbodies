@@ -15,10 +15,9 @@ public class Utils {
     public static final String pathToMeshes = "src/main/resources/meshes/";
     public static final Vector g = new Vector(0, -9.81);
 
-    public static Vector VectorAdd(Vector v1, Vector v2) {
-        return new Vector(v1.x + v2.x, v1.y + v2.y);
-    }
+    public static Vector VectorAdd(Vector v1, Vector v2) {return new Vector(v1.x + v2.x, v1.y + v2.y);}
     public static Vector VectorScalarMultiply(Vector v1, double Scalar) {return new Vector(v1.x * Scalar, v1.y * Scalar);}
+    public static Vector VectorSubtract(Vector v1, Vector v2) {return  VectorAdd(v1, VectorScalarMultiply(v2, -1));}
     public static double Dot(Vector v1, Vector v2) {return v1.x * v2.x + v1.y * v2.y;}
     public static double AngleBetween(Vector v1, Vector v2) {return Math.acos(Dot(v1, v2) / (v1.getMagnitude() * v2.getMagnitude()));}
 
