@@ -4,7 +4,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RigidBody {
@@ -59,10 +58,10 @@ public class RigidBody {
             }
     }
 
-    @SuppressWarnings("unused")
+    //@SuppressWarnings("unused")
     private Point LocalToWorldSpace(Point p) {return new Point(this.Position.x + p.x, this.Position.y + p.y);}
-    private MovingPoint LocalToWorldSpace(MovingPoint p) {return new MovingPoint(this.Position.x + p.x, this.Position.y + p.y, p.Velocity);}
-    @SuppressWarnings("unused")
+    private MovingPoint LocalToWorldSpace(MovingPoint p) {return new MovingPoint(this.Position.x + p.x, this.Position.y + p.y,new Vector(LocalToWorldSpace(p.Velocity.getEndPoint())));}
+    //@SuppressWarnings("unused")
     private Point WorldToLocalSpace(Point p) {return new Point(p.x-this.Position.x, p.y-this.Position.y);}
 
     @SuppressWarnings("unused")
@@ -88,7 +87,7 @@ public class RigidBody {
             p.Velocity = Utils.VectorAdd(p.Velocity, acceleration);
         }
         List<Collision> collisions = getCollisions(delta);
-        for (Collision c : collisions) ReflectPoint(c);
+        for (Collision c : collisions) ReflectPoint(c, delta);
         for (Triangle t : Collider) for (MovingPoint p : t.points) {
             p.x += p.Velocity.x * delta; p.y += p.Velocity.y * delta;
         }
@@ -106,7 +105,8 @@ public class RigidBody {
             };
             for (RigidBody rb : canvas.Objects) for (Triangle otherT : rb.Collider) for (int[] line : permutations) {
                 if (rb != this) {
-                    Point p1 = rb.LocalToWorldSpace(otherT.points[line[0]]); Point p2 = rb.LocalToWorldSpace(otherT.points[line[1]]);
+                    //Point p1 = rb.LocalToWorldSpace(otherT.points[line[0]]); Point p2 = rb.LocalToWorldSpace(otherT.points[line[1]]);
+                    Point p1 = otherT.points[line[0]].Position(); Point p2 = otherT.points[line[1]].Position();
                     double gradient = Utils.getGradient(p1, p2); double intercept = Utils.get_Y_intercept(p1, p2);
                     //Now we have all the pieces to find the a, b and c for the discriminant
                     double a = Math.pow(gradient, 2) + 1;
@@ -122,12 +122,12 @@ public class RigidBody {
     }
 
     //https://stackoverflow.com/questions/573084/how-to-calculate-bounce-angle?noredirect=1&lq=1
-    private void ReflectPoint(Collision collision) {
-        MovingPoint p = LocalToWorldSpace(collision.point);
+    private void ReflectPoint(Collision collision, double delta) {
+        MovingPoint p = collision.point;
         double dx = collision.line[1].x - collision.line[0].x;
         double dy = collision.line[1].y - collision.line[0].y;
         Vector normal;
-        Point prevLocation = new Point(p.x - p.Velocity.x, p.y - p.Velocity.y);
+        Point prevLocation = new Point(p.x - (p.Velocity.x * delta), p.y - (p.Velocity.y * delta));
         if (prevLocation.y > Utils.linearFunction(prevLocation, collision.line)) normal = new Vector(-dy, dx);
         else normal = new Vector(dy, -dx);
         Vector u = Utils.VectorScalarMultiply(normal, (Utils.Dot(p.Velocity, normal) / Utils.Dot(normal, normal)));
@@ -135,11 +135,11 @@ public class RigidBody {
 
         //TODO if I add a friction system make sure to multiply w by the coefficient of friction
         Vector reflectVelocity = Utils.VectorSubtract(w, Utils.VectorScalarMultiply(u, elasticity));
-        collision.point.Velocity = reflectVelocity;
+        //collision.point.Velocity = reflectVelocity;
         for (Triangle t : Collider) for (MovingPoint point : t.points) {
             if (!point.equals(p)) {
                 point.Velocity = Utils.VectorAdd(point.Velocity, Utils.VectorScalarMultiply(reflectVelocity, rigidity));
-            }
+            } else point.Velocity = reflectVelocity;
         }
     }
 

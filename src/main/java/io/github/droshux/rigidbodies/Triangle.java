@@ -55,4 +55,14 @@ public class Triangle {
         //And return the point that gives :)
         return new Point(meanX, meanY);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder out = new StringBuilder("Triangle: ");
+        for (MovingPoint p : points) {
+            out.append("    \n");
+            out.append(p.toString());
+        }
+        return out.toString();
+    }
 }
