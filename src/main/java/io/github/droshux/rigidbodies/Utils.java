@@ -30,6 +30,7 @@ public class Utils {
     public static double getGradient(Point p1, Point p2) {return Math.abs(p1.y - p2.y) / Math.abs(p1.x - p2.x);}
     public static double get_Y_intercept(Point p1, Point p2) {return p1.y - getGradient(p1, p2) * p1.x;}
     public static double linearFunction(Point p, Point[] line) {return p.x * getGradient(line[0], line[1]) + get_Y_intercept(line[0], line[1]);}
+    public static double linearFunction(double x, Point[] line) {return x * getGradient(line[0], line[1]) + get_Y_intercept(line[0], line[1]);}
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {

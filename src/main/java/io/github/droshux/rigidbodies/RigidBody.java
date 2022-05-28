@@ -1,8 +1,7 @@
 package io.github.droshux.rigidbodies;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,7 +60,7 @@ public class RigidBody {
     //@SuppressWarnings("unused")
     private Point LocalToWorldSpace(Point p) {return new Point(this.Position.x + p.x, this.Position.y + p.y);}
     private MovingPoint LocalToWorldSpace(MovingPoint p) {return new MovingPoint(this.Position.x + p.x, this.Position.y + p.y,new Vector(LocalToWorldSpace(p.Velocity.getEndPoint())));}
-    //@SuppressWarnings("unused")
+    @SuppressWarnings("unused")
     private Point WorldToLocalSpace(Point p) {return new Point(p.x-this.Position.x, p.y-this.Position.y);}
 
     @SuppressWarnings("unused")
@@ -94,7 +93,7 @@ public class RigidBody {
     }
 
     private List<Collision> getCollisions(double delta) {
-        List<Collision> colliderLines = new ArrayList<>();
+        List<Collision> collisions = new ArrayList<>();
         for (Triangle t : Collider) for (MovingPoint p : t.points) {
             double r = p.Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
             double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
@@ -103,22 +102,34 @@ public class RigidBody {
                     {0, 2},
                     {1, 2}
             };
-            for (RigidBody rb : canvas.Objects) for (Triangle otherT : rb.Collider) for (int[] line : permutations) {
-                if (rb != this) {
-                    //Point p1 = rb.LocalToWorldSpace(otherT.points[line[0]]); Point p2 = rb.LocalToWorldSpace(otherT.points[line[1]]);
-                    Point p1 = otherT.points[line[0]].Position(); Point p2 = otherT.points[line[1]].Position();
-                    double gradient = Utils.getGradient(p1, p2); double intercept = Utils.get_Y_intercept(p1, p2);
+            for (RigidBody rb : canvas.Objects) {
+                List<Collision> localCollisions = new ArrayList<>();
+                for (Triangle otherT : rb.Collider) for (int[] line : permutations) if (!Objects.equals(rb.id, id)) {
+                    Point p1 = rb.LocalToWorldSpace(otherT.points[line[0]]);
+                    Point p2 = rb.LocalToWorldSpace(otherT.points[line[1]]);
+                    double gradient = Utils.getGradient(p1, p2);
+                    double intercept = Utils.get_Y_intercept(p1, p2);
                     //Now we have all the pieces to find the a, b and c for the discriminant
                     double a = Math.pow(gradient, 2) + 1;
-                    double b = (2 * gradient * intercept) - (2 * gradient * yPos) - (2* xPos);
+                    double b = (2 * gradient * intercept) - (2 * gradient * yPos) - (2 * xPos);
                     double c = Math.pow(xPos, 2) + Math.pow(yPos, 2) + Math.pow(intercept, 2) - (2 * yPos * intercept) - Math.pow(r, 2);
                     //Time to calculate discriminant
                     double discriminant = Math.pow(b, 2) - (4 * a * c);
-                    if (discriminant >= 0) colliderLines.add(new Collision(p, new Point[] {p1, p2})); //If the discriminant is less than 0 the line intersects the circle
+                    if (discriminant >= 0) {
+                        Point[] ln = new Point[]{p1, p2};
+                        double distance, root1, root2;
+                        root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+                        root2 = (-b - Math.sqrt(discriminant)) / (2 * a); //Use the quadratic formula to find the two x coordinates of intersection
+                        distance = Math.min(p.DistanceTo(new Point(root1, Utils.linearFunction(root1, ln))), p.DistanceTo(new Point(root2, Utils.linearFunction(root2, ln)))); //Sets the distance to the distance of the nearest intersection
+                        localCollisions.add(new Collision(p, ln, 1 / distance)); //If the discriminant is less than 0 the line intersects the circle
+                    }
                 }
+                Collections.sort(localCollisions);
+                //System.out.println(localCollisions.size());
+                if (localCollisions.size() != 0) collisions.add(localCollisions.get(0));
             }
         }
-        return colliderLines;
+        return collisions;
     }
 
     //https://stackoverflow.com/questions/573084/how-to-calculate-bounce-angle?noredirect=1&lq=1
@@ -143,8 +154,15 @@ public class RigidBody {
         }
     }
 
-    private static class Collision {
-        public MovingPoint point; public Point[] line;
-        public Collision(MovingPoint p, Point[] l) {point = p; line = l;}
+    private static class Collision implements Comparable<Collision> {
+        public MovingPoint point; public Point[] line; public double priority;
+        public Collision(MovingPoint p, Point[] l, double pr) {point = p; line = l; priority = pr;}
+        @Override
+        public int compareTo(Collision col) {
+            if (priority != col.priority) {
+                boolean b = (priority > col.priority);
+                return b ? 1 : -1;
+            } else return 0;
+        }
     }
 }
