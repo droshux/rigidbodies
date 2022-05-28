@@ -121,11 +121,10 @@ public class RigidBody {
                         root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
                         root2 = (-b - Math.sqrt(discriminant)) / (2 * a); //Use the quadratic formula to find the two x coordinates of intersection
                         distance = Math.min(p.DistanceTo(new Point(root1, Utils.linearFunction(root1, ln))), p.DistanceTo(new Point(root2, Utils.linearFunction(root2, ln)))); //Sets the distance to the distance of the nearest intersection
-                        localCollisions.add(new Collision(p, ln, 1 / distance)); //If the discriminant is less than 0 the line intersects the circle
+                        localCollisions.add(new Collision(p, ln, distance)); //If the discriminant is less than 0 the line intersects the circle
                     }
                 }
                 Collections.sort(localCollisions);
-                //System.out.println(localCollisions.size());
                 if (localCollisions.size() != 0) collisions.add(localCollisions.get(0));
             }
         }
@@ -155,12 +154,12 @@ public class RigidBody {
     }
 
     private static class Collision implements Comparable<Collision> {
-        public MovingPoint point; public Point[] line; public double priority;
-        public Collision(MovingPoint p, Point[] l, double pr) {point = p; line = l; priority = pr;}
+        public MovingPoint point; public Point[] line; public double distance;
+        public Collision(MovingPoint p, Point[] l, double d) {point = p; line = l; distance = d;}
         @Override
         public int compareTo(Collision col) {
-            if (priority != col.priority) {
-                boolean b = (priority > col.priority);
+            if (distance != col.distance) {
+                boolean b = (distance < col.distance);
                 return b ? 1 : -1;
             } else return 0;
         }
