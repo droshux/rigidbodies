@@ -85,15 +85,29 @@ public class RigidBody {
         //Predict Velocity
         Vector preVelocity = Utils.VectorAdd(this.Velocity, preAcceleration);
 
+        Position = predictPosition(preVelocity, delta);
+
         Forces = new ArrayList<>(); //Wipe forces
     }
 
     //Use Ray-marching to find the furthest valid position for the rigidbody
     private Point predictPosition(Vector velocity, double delta) {
-        Point output = Position;
+        Point startPos = Position;
+        Point output;
+        double factor = 1;
 
+        //Initial check for no collision
+        Position = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
+        if (getCollisions(velocity, delta).size() == 0) {output = Position; Position = startPos; return output;}
 
-
+        for (int iteration = 1; iteration <= Utils.RayMarchDepth; iteration++) { //Slightly unconventional looping
+            Position = startPos;
+            Position = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
+            if (getCollisions(velocity, delta).size() > 0) factor += (1 - factor) / 2;
+            else factor /= 2;
+        }
+        Position = startPos;
+        output = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
         return output;
     }
 

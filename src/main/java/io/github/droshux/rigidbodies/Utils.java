@@ -14,6 +14,7 @@ public class Utils {
 
     public static final String pathToMeshes = "src/main/resources/meshes/";
     public static final Vector g = new Vector(0, -9.81);
+    public static final int RayMarchDepth = 10;
 
     public static Vector VectorAdd(Vector v1, Vector v2) {
         return new Vector(v1.x + v2.x, v1.y + v2.y);
