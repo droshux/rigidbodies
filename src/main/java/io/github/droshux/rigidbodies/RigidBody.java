@@ -4,7 +4,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RigidBody {
@@ -78,25 +77,30 @@ public class RigidBody {
 
     public void Update(double delta) {
         if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
-        Vector acceleration = new Vector(0,0);
-        for (Vector F : Forces) {
-            acceleration = Utils.VectorAdd(acceleration, Utils.VectorScalarMultiply(F, 1/Mass)); //F=ma therefore a=F/m
-        }
-        Velocity = Utils.VectorAdd(Velocity, acceleration);
-        if (Objects.equals(id, "test1")) {
-            List<Collision> collisions = getCollisions(delta);
-            if (collisions.size() != 0) {
-                Colour = Color.RED;
-                for (Collision c : collisions) ReflectPoint(c);
-            } else Colour = Color.BLUE;
-        }
-        this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
+
+        //Predict Acceleration
+        Vector preAcceleration = new Vector(0,0);
+        for (Vector force : Forces) preAcceleration = Utils.VectorAdd(preAcceleration, Utils.VectorScalarMultiply(force, this.Mass)); //Calculate predicted acceleration
+
+        //Predict Velocity
+        Vector preVelocity = Utils.VectorAdd(this.Velocity, preAcceleration);
+
+        Forces = new ArrayList<>(); //Wipe forces
     }
 
-    private List<Collision> getCollisions(double delta) {
-        List<Collision> colliderLines = new ArrayList<>();
+    //Use Ray-marching to find the furthest valid position for the rigidbody
+    private Point predictPosition(Vector velocity, double delta) {
+        Point output = Position;
+
+
+
+        return output;
+    }
+
+    private List<Collision> getCollisions(Vector vel, double delta) {
+        List<Collision> collisions = new ArrayList<>();
         for (Triangle t : Collider) for (Point p : t.points) {
-            double r = Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
+            double r = vel.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
             double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
             int[][] permutations = {
                     {0, 1},
@@ -113,23 +117,15 @@ public class RigidBody {
                     double c = Math.pow(xPos, 2) + Math.pow(yPos, 2) + Math.pow(intercept, 2) - (2 * yPos * intercept) - Math.pow(r, 2);
                     //Time to calculate discriminant
                     double discriminant = Math.pow(b, 2) - (4 * a * c);
-                    if (discriminant >= 0) colliderLines.add(new Collision(p, new Point[] {p1, p2})); //If the discriminant is less than 0 the line intersects the circle
+                    if (discriminant >= 0) collisions.add(new Collision(p, new Point[] {p1, p2}, rb)); //If the discriminant is less than 0 the line intersects the circle
                 }
             }
         }
-        return colliderLines;
-    }
-
-    private void ReflectPoint(Collision collision) {
-        Point p = LocalToWorldSpace(collision.point);
-        double dx = collision.line[1].x - collision.line[0].x;
-        double dy = collision.line[1].y - collision.line[0].y;
-        Vector normal1 = new Vector(-dy, dx); Vector normal2 = new Vector(dy, -dx); Vector normal;
-
+        return collisions;
     }
 
     private static class Collision {
-        public Point point; public Point[] line;
-        public Collision(Point p, Point[] l) {point = p; line = l;}
+        public Point point; public Point[] line; public RigidBody rigidBody;
+        public Collision(Point p, Point[] l, RigidBody rb) {point = p; line = l; rigidBody = rb;}
     }
 }
