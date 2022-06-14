@@ -20,6 +20,7 @@ public class RigidBody {
 
     public List<Vector> Forces = new ArrayList<>();
     public Vector Velocity = new Vector(0,0);
+    public double AngularVelocity = 0; //Lowercase omega
     public Vector Weight;
 
     public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity, double elasticity, double rigidity) {
@@ -80,34 +81,38 @@ public class RigidBody {
 
         //Predict Acceleration
         Vector preAcceleration = new Vector(0,0);
-        for (Vector force : Forces) preAcceleration = Utils.VectorAdd(preAcceleration, Utils.VectorScalarMultiply(force, this.Mass)); //Calculate predicted acceleration
+        for (Vector force : Forces) preAcceleration = Utils.VectorAdd(preAcceleration, Utils.VectorScalarMultiply(force, 1/this.Mass)); //Calculate predicted acceleration
 
-        //Predict Velocity
-        Vector preVelocity = Utils.VectorAdd(this.Velocity, preAcceleration);
-
-        Position = predictPosition(preVelocity, delta);
+        //Predict Velocity and move as far as possible
+        Velocity = Utils.VectorAdd(this.Velocity, Utils.VectorScalarMultiply(preAcceleration, delta));
+        Position = snapToEdgeAndRotate(Velocity, delta);
 
         Forces = new ArrayList<>(); //Wipe forces
     }
 
     //Use Ray-marching to find the furthest valid position for the rigidbody
-    private Point predictPosition(Vector velocity, double delta) {
+    private Point snapToEdgeAndRotate(Vector velocity, double delta) {
         Point startPos = Position;
         Point output;
         double factor = 1;
+        Triangle[] startCol = Collider;
 
         //Initial check for no collision
+        Rotate(AngularVelocity * delta);
         Position = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
         if (getCollisions(velocity, delta).size() == 0) {output = Position; Position = startPos; return output;}
+        Collider = startCol;
 
         for (int iteration = 1; iteration <= Utils.RayMarchDepth; iteration++) { //Slightly unconventional looping
-            Position = startPos;
+            Position = startPos; Collider = startCol;
             Position = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
+            Rotate(AngularVelocity * delta * factor);
             if (getCollisions(velocity, delta).size() > 0) factor += (1 - factor) / 2;
             else factor /= 2;
         }
         Position = startPos;
         output = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
+        Rotate(AngularVelocity * delta * factor); //I am rotating in this function because reasons
         return output;
     }
 
