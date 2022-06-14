@@ -78,16 +78,17 @@ public class RigidBody {
 
     public void Update(double delta) {
         if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
+        if (Forces.size()>0) {
+            System.out.println(delta);
+            //Predict Acceleration
+            Vector resultantForce = new Vector(0,0);
+            for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force); //Calculate predicted acceleration
+            //Predict Velocity and move as far as possible
+            Velocity = Utils.VectorAdd(this.Velocity, Utils.VectorScalarMultiply(resultantForce, 1/this.Mass));
+            Position = snapToEdgeAndRotate(Velocity, delta);
 
-        //Predict Acceleration
-        Vector preAcceleration = new Vector(0,0);
-        for (Vector force : Forces) preAcceleration = Utils.VectorAdd(preAcceleration, Utils.VectorScalarMultiply(force, 1/this.Mass)); //Calculate predicted acceleration
-
-        //Predict Velocity and move as far as possible
-        Velocity = Utils.VectorAdd(this.Velocity, Utils.VectorScalarMultiply(preAcceleration, delta));
-        Position = snapToEdgeAndRotate(Velocity, delta);
-
-        Forces = new ArrayList<>(); //Wipe forces
+            Forces = new ArrayList<>(); //Wipe forces
+        }
     }
 
     //Use Ray-marching to find the furthest valid position for the rigidbody
