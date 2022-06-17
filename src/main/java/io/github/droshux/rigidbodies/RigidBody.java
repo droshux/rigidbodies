@@ -81,13 +81,25 @@ public class RigidBody {
     public void Update(double delta) {
         if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
         if (Forces.size()>0) {
-            System.out.println(delta);
             //Predict Acceleration
             Vector resultantForce = new Vector(0,0);
             for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force); //Calculate predicted acceleration
-            //Predict Velocity and move as far as possible
+            //Predict Velocity
+            Vector acc = Utils.VectorScalarMultiply(resultantForce, delta/this.Mass);
+            Velocity = Utils.VectorAdd(this.Velocity, acc);
+
+            //Collision
+            System.out.println(getCollisions(Velocity, delta).size());
+            if (getCollisions(Velocity, delta).size() > 0){
+                Position = snapToEdgeAndRotate(Velocity, delta);
+                ApplyNormalReaction(getCollisions(Velocity, delta), delta);
+            }
+            //Re Acceleration
+            resultantForce = new Vector(0,0);
+            for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force); //Calculate predicted acceleration
+            //Re Velocity and move
             Velocity = Utils.VectorAdd(this.Velocity, Utils.VectorScalarMultiply(resultantForce, 1/this.Mass));
-            Position = snapToEdgeAndRotate(Velocity, delta);
+            Position = Utils.VectorAdd(new Vector(Position), Utils.VectorScalarMultiply(Velocity, delta));
 
             Forces = new ArrayList<>(); //Wipe forces
         }
@@ -158,7 +170,7 @@ public class RigidBody {
             Vector resultantForce = new Vector(0,0);
             for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force);
             resultantForce.matrixTransform(normal.x, -normal.y,
-                    normal.y, normal.x);
+                                           normal.y, normal.x);
             double normalDir = normal.getDirection();
             normal.setDirectionAndMagnitude(normalDir, resultantForce.x);
             Forces.add(normal);
