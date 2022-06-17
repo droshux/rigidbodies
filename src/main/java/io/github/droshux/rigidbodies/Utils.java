@@ -34,6 +34,7 @@ public class Utils {
 
     public static double getGradient(Point p1, Point p2) {return Math.abs(p1.y - p2.y) / Math.abs(p1.x - p2.x);}
     public static double get_Y_intercept(Point p1, Point p2) {return p1.y - getGradient(p1, p2) * p1.x;}
+    public static double linearFunction(Point p, Point[] l) {return getGradient(l[0], l[1]) * p.x + get_Y_intercept(l[0], l[1]);}
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {

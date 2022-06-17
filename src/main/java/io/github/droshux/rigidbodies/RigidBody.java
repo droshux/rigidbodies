@@ -1,5 +1,7 @@
 package io.github.droshux.rigidbodies;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -143,6 +145,26 @@ public class RigidBody {
         }
         return collisions;
     }
+
+    private void ApplyNormalReaction(@NotNull List<Collision> collisionList, double delta) {
+        for (Collision collision : collisionList) {
+            Point p = collision.point;
+            double dx = collision.line[1].x - collision.line[0].x;
+            double dy = collision.line[1].y - collision.line[0].y;
+            Vector normal;
+            Point prevLocation = new Point(p.x - (Velocity.x * delta), p.y - (Velocity.y * delta));
+            if (prevLocation.y > Utils.linearFunction(prevLocation, collision.line)) normal = new Vector(-dy, dx);
+            else normal = new Vector(dy, -dx);
+            Vector resultantForce = new Vector(0,0);
+            for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force);
+            resultantForce.matrixTransform(normal.x, -normal.y,
+                    normal.y, normal.x);
+            double normalDir = normal.getDirection();
+            normal.setDirectionAndMagnitude(normalDir, resultantForce.x);
+            Forces.add(normal);
+        }
+    }
+
 
     private static class Collision {
         public Point point; public Point[] line; public RigidBody rigidBody;
