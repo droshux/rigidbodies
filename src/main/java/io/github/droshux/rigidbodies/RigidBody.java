@@ -60,6 +60,16 @@ public class RigidBody {
             }
     }
 
+    public Point RotatePointAboutCenter(Point point, double theta, Point center) {
+        point = Utils.VectorAdd(new Vector(point), Utils.VectorScalarMultiply(new Vector(center), -1)).getEndPoint();
+        point.matrixTransform(
+                Math.cos(theta), -Math.sin(theta),
+                Math.sin(theta), Math.cos(theta)
+        );
+        point = Utils.VectorAdd(new Vector(point), new Vector(center));
+        return point;
+    }
+
     @SuppressWarnings("unused")
     private Point LocalToWorldSpace(Point p) {return new Point(this.Position.x + p.x, this.Position.y + p.y);}
     @SuppressWarnings("unused")
@@ -83,21 +93,23 @@ public class RigidBody {
         if (Forces.size()>0) {
             //Predict Acceleration
             Vector resultantForce = new Vector(0,0);
-            for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force); //Calculate predicted acceleration
+            for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force); //Calculate predicted resultant force
             //Predict Velocity
             Vector acc = Utils.VectorScalarMultiply(resultantForce, delta/this.Mass);
-            Velocity = Utils.VectorAdd(this.Velocity, acc);
+            Vector preVel = Utils.VectorAdd(this.Velocity, acc);
 
             //Collision
-            System.out.println(getCollisions(Velocity, delta).size());
-            if (getCollisions(Velocity, delta).size() > 0){
-                Position = snapToEdgeAndRotate(Velocity, delta);
-                ApplyNormalReaction(getCollisions(Velocity, delta), delta);
+            //System.out.println(getCollisions(preVel, delta).size());
+            List<Collision> collisions =getCollisions(preVel, delta);
+            if (collisions.size() > 0){
+                System.out.println("COLLIDING:");
+                Position = snapToEdgeAndRotate(preVel, delta);
+                ApplyNormalReaction(collisions, delta);
             }
             //Re Acceleration
             resultantForce = new Vector(0,0);
-            for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force); //Calculate predicted acceleration
-            //Re Velocity and move
+            for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force); //Calculate resultant force
+            //Recalculate Velocity and move
             Velocity = Utils.VectorAdd(this.Velocity, Utils.VectorScalarMultiply(resultantForce, 1/this.Mass));
             Position = Utils.VectorAdd(new Vector(Position), Utils.VectorScalarMultiply(Velocity, delta));
 
@@ -122,8 +134,8 @@ public class RigidBody {
             Position = startPos; Collider = startCol;
             Position = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
             Rotate(AngularVelocity * delta * factor);
-            if (getCollisions(velocity, delta).size() > 0) factor += (1 - factor) / 2;
-            else factor /= 2;
+            if (getCollisions(velocity, delta).size() > 0) factor /= 2;
+            else factor += (1 - factor) / 2;
         }
         Position = startPos;
         output = Utils.VectorAdd(new Vector(startPos), Utils.VectorScalarMultiply(velocity, factor * delta));
@@ -135,7 +147,8 @@ public class RigidBody {
         List<Collision> collisions = new ArrayList<>();
         for (Triangle t : Collider) for (Point p : t.points) {
             double r = vel.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
-            double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
+            double xPos = RotatePointAboutCenter(LocalToWorldSpace(p), AngularVelocity * delta, this.Position).x;
+            double yPos = RotatePointAboutCenter(LocalToWorldSpace(p), AngularVelocity * delta, this.Position).y;
             int[][] permutations = {
                     {0, 1},
                     {0, 2},
@@ -167,6 +180,7 @@ public class RigidBody {
             Point prevLocation = new Point(p.x - (Velocity.x * delta), p.y - (Velocity.y * delta));
             if (prevLocation.y > Utils.linearFunction(prevLocation, collision.line)) normal = new Vector(-dy, dx);
             else normal = new Vector(dy, -dx);
+            normal = Utils.VectorScalarMultiply(normal, 1/normal.getMagnitude());
             Vector resultantForce = new Vector(0,0);
             for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force);
             resultantForce.matrixTransform(normal.x, -normal.y,
