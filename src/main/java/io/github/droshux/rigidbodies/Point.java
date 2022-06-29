@@ -29,4 +29,10 @@ public class Point {
 
         x = xOUT; y=yOUT;
     }
+    public void matrixTransform(Utils.Matrix M) {
+        double xOUT = (M.i.x * x) + (M.j.x * y);
+        double yOUT = (M.i.y * x) + (M.j.y * y);
+
+        x=xOUT;y=yOUT;
+    }
 }

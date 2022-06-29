@@ -4,7 +4,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RigidBody {
@@ -21,6 +20,7 @@ public class RigidBody {
 
     public List<Vector> Forces = new ArrayList<>();
     public Vector Velocity = new Vector(0,0);
+    public double AngularVelocity = 0;
     public Vector Weight;
 
     public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity, double elasticity, double rigidity) {
@@ -77,59 +77,14 @@ public class RigidBody {
     }
 
     public void Update(double delta) {
-        if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
-        Vector acceleration = new Vector(0,0);
-        for (Vector F : Forces) {
-            acceleration = Utils.VectorAdd(acceleration, Utils.VectorScalarMultiply(F, 1/Mass)); //F=ma therefore a=F/m
-        }
-        Velocity = Utils.VectorAdd(Velocity, acceleration);
-        if (Objects.equals(id, "test1")) {
-            List<Collision> collisions = getCollisions(delta);
-            if (collisions.size() != 0) {
-                Colour = Color.RED;
-                for (Collision c : collisions) ReflectPoint(c);
-            } else Colour = Color.BLUE;
-        }
-        this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
+        if (!Forces.contains(Utils.g) && UseGravity) Forces.add(Weight);
+        Vector resultantForce = new Vector(0,0);
+        for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force);
+        Velocity = Utils.VectorAdd(Velocity, Utils.VectorScalarMultiply(resultantForce, delta/Mass));
+        Position = Utils.VectorAdd(new Vector(Position), Utils.VectorScalarMultiply(Velocity, delta));
     }
 
-    private List<Collision> getCollisions(double delta) {
-        List<Collision> colliderLines = new ArrayList<>();
-        for (Triangle t : Collider) for (Point p : t.points) {
-            double r = Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
-            double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
-            int[][] permutations = {
-                    {0, 1},
-                    {0, 2},
-                    {1, 2}
-            };
-            for (RigidBody rb : canvas.Objects) for (Triangle otherT : rb.Collider) for (int[] line : permutations) {
-                if (rb != this) {
-                    Point p1 = rb.LocalToWorldSpace(otherT.points[line[0]]); Point p2 = rb.LocalToWorldSpace(otherT.points[line[1]]);
-                    double gradient = Utils.getGradient(p1, p2); double intercept = Utils.get_Y_intercept(p1, p2);
-                    //Now we have all the pieces to find the a, b and c for the discriminant
-                    double a = Math.pow(gradient, 2) + 1;
-                    double b = (2 * gradient * intercept) - (2 * gradient * yPos) - (2* xPos);
-                    double c = Math.pow(xPos, 2) + Math.pow(yPos, 2) + Math.pow(intercept, 2) - (2 * yPos * intercept) - Math.pow(r, 2);
-                    //Time to calculate discriminant
-                    double discriminant = Math.pow(b, 2) - (4 * a * c);
-                    if (discriminant >= 0) colliderLines.add(new Collision(p, new Point[] {p1, p2})); //If the discriminant is less than 0 the line intersects the circle
-                }
-            }
-        }
-        return colliderLines;
-    }
+    /*public void AddForceAtPosition(Vector force, Point localPosition) {
 
-    private void ReflectPoint(Collision collision) {
-        Point p = LocalToWorldSpace(collision.point);
-        double dx = collision.line[1].x - collision.line[0].x;
-        double dy = collision.line[1].y - collision.line[0].y;
-        Vector normal1 = new Vector(-dy, dx); Vector normal2 = new Vector(dy, -dx); Vector normal;
-
-    }
-
-    private static class Collision {
-        public Point point; public Point[] line;
-        public Collision(Point p, Point[] l) {point = p; line = l;}
-    }
+    }*/
 }
