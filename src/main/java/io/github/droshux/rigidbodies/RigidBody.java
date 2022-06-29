@@ -52,7 +52,7 @@ public class RigidBody {
     public void Rotate(double theta) {
         for (Triangle t : Collider)
             for (Point p : t.points) {
-                p.matrixTransform(
+                p.matrixTransformSelf(
                         Math.cos(theta), -Math.sin(theta),
                         Math.sin(theta), Math.cos(theta));
             }
