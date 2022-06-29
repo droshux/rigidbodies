@@ -22,17 +22,30 @@ public class Point {
         return "(" + Utils.Round(x, 3) + ", " + Utils.Round(y, 3) + ")";
     }
 
-    public void matrixTransform(double ix, double jx,
+    public void matrixTransformSelf(double ix, double jx,
                                 double iy, double jy) {
         double xOUT = (ix * x) + (jx * y);
         double yOUT = (iy * x) + (jy  * y);
 
         x = xOUT; y=yOUT;
     }
-    public void matrixTransform(Utils.Matrix M) {
+    public void matrixTransformSelf(Utils.Matrix M) {
         double xOUT = (M.i.x * x) + (M.j.x * y);
         double yOUT = (M.i.y * x) + (M.j.y * y);
 
         x=xOUT;y=yOUT;
+    }
+    public Point matrixTransform(double ix, double jx,
+                                double iy, double jy) {
+        double xOUT = (ix * x) + (jx * y);
+        double yOUT = (iy * x) + (jy  * y);
+
+        return new Point(xOUT, yOUT);
+    }
+    public Point matrixTransform(Utils.Matrix M) {
+        double xOUT = (M.i.x * x) + (M.j.x * y);
+        double yOUT = (M.i.y * x) + (M.j.y * y);
+
+        return new Point(xOUT, yOUT);
     }
 }

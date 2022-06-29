@@ -15,6 +15,7 @@ public class Utils {
 
     public static final String pathToMeshes = "src/main/resources/meshes/";
     public static final Vector g = new Vector(0, -9.81);
+    public static final Matrix rotate90 = new Matrix(0, -1, 1, 0);
 
     @Contract("_, _ -> new")
     public static @NotNull Vector VectorAdd(@NotNull Vector v1, @NotNull Vector v2) {
@@ -24,6 +25,9 @@ public class Utils {
     public static @NotNull Vector VectorScalarMultiply(@NotNull Vector v1, double Scalar) {
         return new Vector(v1.x * Scalar, v1.y * Scalar);
     }
+
+    //From: https://www.mathsisfun.com/algebra/vectors-dot-product.html
+    public static double DotProduct(Vector v1, Vector v2) {return v1.x * v2.x + v1.y * v2.y;}
 
     @Contract("_, _ -> new")
     public static @NotNull Matrix ScalarMultiply(@NotNull Matrix M, double scalar) {return new Matrix(scalar * M.i.x, scalar * M.j.x,
