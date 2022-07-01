@@ -111,7 +111,9 @@ public class RigidBody {
         Position = Utils.VectorAdd(new Vector(Position), Utils.VectorScalarMultiply(Velocity, delta));
     }
 
-    /*public void AddForceAtPosition(Vector force, Point localPosition) {
-
-    }*/
+    public void AddForceAtPosition(Vector force, Point localPosition, double delta) {
+        Forces.add(force); //Add the force normally
+        double Torque = localPosition.x * force.y - localPosition.y * force.x; //2D torque calculation
+        AngularVelocity += Torque * delta / MomentOfInertia;
+    }
 }
