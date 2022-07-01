@@ -11,6 +11,7 @@ public class RigidBody {
     public  Triangle[] Collider;
     public Point Position;
     public double Mass; //In kilograms
+    public final double MomentOfInertia; //kgm^2
     public final boolean UseGravity;
     public Color Colour;
     public double elasticity;
@@ -34,7 +35,33 @@ public class RigidBody {
             p.y -= COM.y;
         }
         if (UseGravity) Weight = Utils.VectorScalarMultiply(Utils.g, Mass);
+        MomentOfInertia = calculateI();
         canvas.Objects.add(this);
+    }
+
+    private double calculateI() {
+        List<Point> polygon = new ArrayList<>();
+        for (Triangle t : Collider) polygon.addAll(Arrays.asList(t.points)); //Make a list of all points in the mesh
+        polygon = polygon.stream().distinct().collect(Collectors.toList()); //Remove duplicates
+        double Jx = 0;
+        for (int i = 0; i <= polygon.size()-1; i++) {
+            int iPlus = i + 1;
+            if (iPlus >= polygon.size()) iPlus = 0; //Loop round
+            Point Pi = polygon.get(i); Point PiPlus = polygon.get(iPlus); //Get two points
+            Jx += ((Pi.x * PiPlus.y)-(PiPlus.x * Pi.y)) * (Math.pow(Pi.x, 2) + (Pi.x * PiPlus.x) + Math.pow(PiPlus.x, 2));
+        }
+        Jx /= 12;
+
+        double Jy = 0;
+        for (int i = 0; i <= polygon.size()-1; i++) {
+            int iPlus = i + 1;
+            if (iPlus >= polygon.size()) iPlus = 0; //Loop round
+            Point Pi = polygon.get(i); Point PiPlus = polygon.get(iPlus); //Get two points
+            Jy += ((Pi.x * PiPlus.y)-(PiPlus.x * Pi.y)) * (Math.pow(Pi.y, 2) + (Pi.y * PiPlus.y) + Math.pow(PiPlus.y, 2));
+        }
+        Jy /= 12;
+
+        return Math.abs(Jx + Jy);
     }
 
     public Point CenterOfMass() {
