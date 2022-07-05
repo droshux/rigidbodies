@@ -6,6 +6,7 @@ public class Program {
 
     public static void main(String[] args) {
         Canvas Canvas = new Canvas();
+//        Canvas.displayTime = true;
         RigidBody rb1 = new RigidBodyBuilder(Canvas)
                 .setId("test1")
                 .setMass(5)
@@ -16,8 +17,9 @@ public class Program {
                 .setElasticity(1)
                 .setRigidity(0)
                 .createRigidBody();
-        System.out.println(rb1.MomentOfInertia);
-        /*
+        rb1.Forces.add(new RigidBody.LocalForce(new Vector(10, 0),
+                new Point(-1, -1),
+                1));
         new RigidBodyBuilder(Canvas)
                 .setId("floor")
                 .setMass(1000)
@@ -26,6 +28,6 @@ public class Program {
                 .setGravity(false)
                 .setColliderFile("floor")
                 .createRigidBody();
-        Canvas.start();*/
+        Canvas.start();
     }
 }

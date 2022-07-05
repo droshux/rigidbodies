@@ -19,6 +19,7 @@ public class Canvas extends java.awt.Canvas implements Runnable{
     public List<RigidBody> Objects = new ArrayList<>();
     public Point CameraPos = new Point(0,0);
     public final int pixelsPerMeter = 25;
+    public double timePassed = 0; public boolean displayTime = false;
 
     public Canvas() {
         frame = new JFrame("FPS: ~ TPS: ~");
@@ -69,8 +70,11 @@ public class Canvas extends java.awt.Canvas implements Runnable{
     }
 
     private void tick(@SuppressWarnings("unused") double delta) {
+        timePassed += delta/100;
+        Utils.clearScreen();
+        if (displayTime) System.out.println(Utils.Round(timePassed, 3));
         for (RigidBody rb : Objects) {
-            rb.Update(delta/1000);
+            rb.Update(delta/100);
         }
     }
 

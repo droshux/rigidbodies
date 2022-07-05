@@ -5,6 +5,7 @@ public class Vector extends Point {
         super(X, Y);
     }
     public Vector(Point p) { super(p.x, p.y);}
+    public Vector() {super(0, 0);}
 
     //Gets direction of vector where right is 0 radians and count anti-clockwise
     public double getDirection() {

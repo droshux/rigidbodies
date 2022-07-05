@@ -1,8 +1,7 @@
 package io.github.droshux.rigidbodies;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,10 +18,10 @@ public class RigidBody {
 
     public Canvas canvas;
 
-    public List<Vector> Forces = new ArrayList<>();
-    public Vector Velocity = new Vector(0,0);
+    public List<LocalForce> Forces = new ArrayList<>();
+    public Vector Velocity = new Vector(); public Vector Acceleration = new Vector();
     public double AngularVelocity = 0;
-    public Vector Weight;
+    public LocalForce Weight;
 
     public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity, double elasticity, double rigidity) {
         this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate; this.UseGravity=useGravity; this.elasticity = elasticity; this.rigidity = rigidity;
@@ -34,7 +33,7 @@ public class RigidBody {
             p.x -= COM.x;
             p.y -= COM.y;
         }
-        if (UseGravity) Weight = Utils.VectorScalarMultiply(Utils.g, Mass);
+        if (UseGravity) Weight = new LocalForce(Utils.VectorScalarMultiply(Utils.g, Mass), new Point(0,0), 1);
         MomentOfInertia = calculateI();
         canvas.Objects.add(this);
     }
@@ -104,16 +103,64 @@ public class RigidBody {
     }
 
     public void Update(double delta) {
-        if (!Forces.contains(Utils.g) && UseGravity) Forces.add(Weight);
-        Vector resultantForce = new Vector(0,0);
-        for (Vector force : Forces) resultantForce = Utils.VectorAdd(resultantForce, force);
-        Velocity = Utils.VectorAdd(Velocity, Utils.VectorScalarMultiply(resultantForce, delta/Mass));
+        if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
+        Acceleration = new Vector();
+        /*for (LocalForce F : Forces) {AddForceAtPosition(F, delta);F.duration -= delta; if(F.duration <= 0 & Forces.contains(F))
+            if (!F.equals(Weight)) System.out.println("Removing: " + F);Forces.remove(F);
+        }*/
+        Iterator<LocalForce> i = Forces.iterator();
+        while (i.hasNext()) {
+            LocalForce F = i.next();
+            AddForceAtPosition(F, delta);
+            F.duration -= delta;
+            if (F.duration <= 0) i.remove();
+        }
+        Velocity = Utils.VectorAdd(Velocity, Acceleration);
         Position = Utils.VectorAdd(new Vector(Position), Utils.VectorScalarMultiply(Velocity, delta));
+        Rotate(AngularVelocity * delta);
+
     }
 
+    @SuppressWarnings("unused")
     public void AddForceAtPosition(Vector force, Point localPosition, double delta) {
-        Forces.add(force); //Add the force normally
+        Acceleration = Utils.VectorAdd(Acceleration, Utils.VectorScalarMultiply(force, delta/Mass));
         double Torque = localPosition.x * force.y - localPosition.y * force.x; //2D torque calculation
         AngularVelocity += Torque * delta / MomentOfInertia;
+    }
+
+    public void AddForceAtPosition(LocalForce F, double delta) {
+        Acceleration = Utils.VectorAdd(Acceleration, Utils.VectorScalarMultiply(F.forceVector, delta/Mass));
+        double Torque = F.localPosition.x * F.forceVector.y - F.localPosition.y * F.forceVector.x; //2D torque calculation
+        AngularVelocity += Torque * delta / MomentOfInertia;
+    }
+
+    public static class LocalForce {
+        public Vector forceVector;
+        public Point localPosition;
+
+        public double duration;
+
+        public LocalForce(Vector forceVector, Point localPosition, double duration) {this.forceVector = forceVector; this.localPosition = localPosition; this.duration = duration;}
+
+        @Override
+        public String toString() {
+            return "LocalForce{" +
+                    "forceVector=" + forceVector +
+                    ", localPosition=" + localPosition +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            LocalForce that = (LocalForce) o;
+            return forceVector.equals(that.forceVector) && localPosition.equals(that.localPosition);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(forceVector, localPosition);
+        }
     }
 }

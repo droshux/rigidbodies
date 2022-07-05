@@ -17,6 +17,11 @@ public class Utils {
     public static final Vector g = new Vector(0, -9.81);
     public static final Matrix rotate90 = new Matrix(0, -1, 1, 0);
 
+    public static void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+
     @Contract("_, _ -> new")
     public static @NotNull Vector VectorAdd(@NotNull Vector v1, @NotNull Vector v2) {
         return new Vector(v1.x + v2.x, v1.y + v2.y);
