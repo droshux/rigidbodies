@@ -19,7 +19,7 @@ public class Program {
                 .createRigidBody();
         rb1.Forces.add(new RigidBody.LocalForce(new Vector(10, 0),
                 new Point(-1, -1),
-                1));
+                0.1));
         new RigidBodyBuilder(Canvas)
                 .setId("floor")
                 .setMass(1000)

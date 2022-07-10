@@ -134,6 +134,19 @@ public class RigidBody {
         AngularVelocity += Torque * delta / MomentOfInertia;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RigidBody)) return false;
+        RigidBody rigidBody = (RigidBody) o;
+        return Double.compare(rigidBody.Mass, Mass) == 0 && Double.compare(rigidBody.MomentOfInertia, MomentOfInertia) == 0 && UseGravity == rigidBody.UseGravity && Double.compare(rigidBody.elasticity, elasticity) == 0 && Double.compare(rigidBody.rigidity, rigidity) == 0 && id.equals(rigidBody.id) && Colour.equals(rigidBody.Colour);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, Mass, MomentOfInertia, UseGravity, Colour, elasticity, rigidity);
+    }
+
     public static class LocalForce {
         public Vector forceVector;
         public Point localPosition;
