@@ -77,16 +77,6 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         for (RigidBody rb : Objects) {
             rb.Update(delta/100);
         }
-        boolean isCol = globalCollisionCheck();
-        System.out.println(isCol);
-        if (isCol) {
-            if (!colliding) {
-                colliding = true; System.out.println("Collision Entered");
-            }
-        } else if (colliding) {
-            colliding = false;
-            System.out.println("Collision Exited!");
-        }
     }
 
     @SuppressWarnings("BusyWait")
@@ -173,23 +163,5 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         }
     }
 
-    private boolean globalCollisionCheck() {
-        for (RigidBody rb : Objects) {
-            for (RigidBody rbOther : Objects) {
-                if (!rbOther.equals(rb)) {
-                    for (Triangle t : rb.Collider) {
-                        for (Point p : t.points) {
-                            for (Triangle tOther : rbOther.Collider) {
-                                if (tOther.contains(p)) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
 
 }
