@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 public class RigidBody {
     public String id;
     public  Triangle[] Collider;
+    public Point[] BoundingBox = new Point[2]; //Axis aligned bounding box in world space. [0] is bottom left and [1] is top right
     public Point Position;
     public double Mass; //In kilograms
     public final double MomentOfInertia; //kgm^2
@@ -105,9 +106,6 @@ public class RigidBody {
     public void Update(double delta) {
         if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
         Acceleration = new Vector();
-        /*for (LocalForce F : Forces) {AddForceAtPosition(F, delta);F.duration -= delta; if(F.duration <= 0 & Forces.contains(F))
-            if (!F.equals(Weight)) System.out.println("Removing: " + F);Forces.remove(F);
-        }*/
         Iterator<LocalForce> i = Forces.iterator();
         while (i.hasNext()) {
             LocalForce F = i.next();
@@ -118,7 +116,7 @@ public class RigidBody {
         Velocity = Utils.VectorAdd(Velocity, Acceleration);
         Position = Utils.VectorAdd(new Vector(Position), Utils.VectorScalarMultiply(Velocity, delta));
         Rotate(AngularVelocity * delta);
-
+        UpdateBoundingBox();
     }
 
     @SuppressWarnings("unused")
@@ -134,11 +132,21 @@ public class RigidBody {
         AngularVelocity += Torque * delta / MomentOfInertia;
     }
 
+    private void UpdateBoundingBox() {
+        Point InitialPoint = Collider[0].points[0]; //First Point to be tested
+        double minX = InitialPoint.x, maxX = InitialPoint.x, minY = InitialPoint.y, maxY = InitialPoint.y; //Initialise min and max
+
+        for (Triangle t : Collider) for (Point p : t.points) {
+            minX = Math.min(p.x, minX); maxX = Math.max(p.x, maxX);
+            minY = Math.min(p.y, minY); maxY = Math.max(p.y, maxY);
+        }
+        BoundingBox[0] = LocalToWorldSpace(new Point(minX, minY)); BoundingBox[1] = LocalToWorldSpace(new Point(maxX, maxY));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RigidBody)) return false;
-        RigidBody rigidBody = (RigidBody) o;
+        if (!(o instanceof RigidBody rigidBody)) return false;
         return Double.compare(rigidBody.Mass, Mass) == 0 && Double.compare(rigidBody.MomentOfInertia, MomentOfInertia) == 0 && UseGravity == rigidBody.UseGravity && Double.compare(rigidBody.elasticity, elasticity) == 0 && Double.compare(rigidBody.rigidity, rigidity) == 0 && id.equals(rigidBody.id) && Colour.equals(rigidBody.Colour);
     }
 

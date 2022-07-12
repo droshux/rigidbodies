@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 //Code lazily copy-pasted from https://gist.github.com/iiAtlas/4122531
@@ -20,7 +22,6 @@ public class Canvas extends java.awt.Canvas implements Runnable{
     public Point CameraPos = new Point(0,0);
     public final int pixelsPerMeter = 25;
     public double timePassed = 0; public boolean displayTime = false;
-    boolean colliding; //FOR TEST PURPOSES TODO remove this line
 
     public Canvas() {
         frame = new JFrame("FPS: ~ TPS: ~");
@@ -76,6 +77,18 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         if (displayTime) System.out.println(Utils.Round(timePassed, 3));
         for (RigidBody rb : Objects) {
             rb.Update(delta/100);
+        }
+
+        //Collision Check:
+        //Broad phase
+        List<RigidBody[]> xIntersects = getBroadPhaseCollisionPairs(false);
+        List<RigidBody[]> yIntersects = getBroadPhaseCollisionPairs(true);
+        List<RigidBody[]> CollisionPairs = new ArrayList<>();
+        for (RigidBody[] rbAx : xIntersects) for (RigidBody[] rbAy : yIntersects) if (Arrays.stream(rbAx).toList().contains(rbAy[0]) || Arrays.stream(rbAx).toList().contains(rbAy[1])) CollisionPairs.add(rbAx);
+
+        if (CollisionPairs.size() > 0) {
+            System.out.println("This frame's collisions:");
+            for (RigidBody[] rbA: CollisionPairs) System.out.println(rbA[0].id + " and " + rbA[1].id);
         }
     }
 
@@ -163,5 +176,34 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         }
     }
 
-
+    private List<RigidBody[/*Length 2*/]> getBroadPhaseCollisionPairs(boolean useYaxis) {
+        List<RigidBody[]> output = new ArrayList<>();
+        List<sortAndSweepValue> values = new ArrayList<>();
+        for (RigidBody rb : Objects) {
+            if (useYaxis) {
+                values.add(new sortAndSweepValue(rb.BoundingBox[0].y, true, rb));
+                values.add(new sortAndSweepValue(rb.BoundingBox[1].y, false, rb));
+            } else {
+                values.add(new sortAndSweepValue(rb.BoundingBox[0].x, true, rb));
+                values.add(new sortAndSweepValue(rb.BoundingBox[1].x, false, rb));
+            }
+        } //Project the two corners of the bounding box onto the x-axis and mark them as beginning or end
+        Collections.sort(values); //Then sort these values
+        List<sortAndSweepValue> activeIntervals = new ArrayList<>();
+        for (sortAndSweepValue v : values) { //Sweep through them
+            //However if it is an end then find and remove the corresponding end
+            if (v.isBeginning) {
+                activeIntervals.add(v); //If the value is a beginning of an interval add it to the list of active intervals
+                for (sortAndSweepValue other : activeIntervals) if (!other.equals(v)) output.add(new RigidBody[]{v.parent, other.parent}); //and add pairs with all active intervals to output
+            }
+            else activeIntervals.removeIf(b -> b.isBeginning && b.parent.equals(v.parent)); //if it is an end remove the corresponding beginning from active intervals
+        }
+        return output;
+    }
+    private record sortAndSweepValue(double value, boolean isBeginning, RigidBody parent) implements  Comparable<sortAndSweepValue>{
+        @Override
+        public int compareTo(sortAndSweepValue other) {
+            return Double.compare(value, other.value);
+        }
+    }
 }
