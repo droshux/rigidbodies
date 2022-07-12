@@ -19,6 +19,8 @@ public class Canvas extends java.awt.Canvas implements Runnable{
     public List<RigidBody> Objects = new ArrayList<>();
     public Point CameraPos = new Point(0,0);
     public final int pixelsPerMeter = 25;
+    public double timePassed = 0; public boolean displayTime = false;
+    boolean colliding; //FOR TEST PURPOSES TODO remove this line
 
     public Canvas() {
         frame = new JFrame("FPS: ~ TPS: ~");
@@ -68,9 +70,22 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         }
     }
 
-    private void tick(@SuppressWarnings("unused") double delta) {
+    private void tick(double delta) {
+        timePassed += delta/100;
+        Utils.clearScreen();
+        if (displayTime) System.out.println(Utils.Round(timePassed, 3));
         for (RigidBody rb : Objects) {
-            rb.Update(delta/1000);
+            rb.Update(delta/100);
+        }
+        boolean isCol = globalCollisionCheck();
+        System.out.println(isCol);
+        if (isCol) {
+            if (!colliding) {
+                colliding = true; System.out.println("Collision Entered");
+            }
+        } else if (colliding) {
+            colliding = false;
+            System.out.println("Collision Exited!");
         }
     }
 
@@ -157,4 +172,24 @@ public class Canvas extends java.awt.Canvas implements Runnable{
             g.fillPolygon(triangle);
         }
     }
+
+    private boolean globalCollisionCheck() {
+        for (RigidBody rb : Objects) {
+            for (RigidBody rbOther : Objects) {
+                if (!rbOther.equals(rb)) {
+                    for (Triangle t : rb.Collider) {
+                        for (Point p : t.points) {
+                            for (Triangle tOther : rbOther.Collider) {
+                                if (tOther.contains(p)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 }

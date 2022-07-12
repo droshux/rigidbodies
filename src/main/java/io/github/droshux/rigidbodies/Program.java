@@ -6,17 +6,20 @@ public class Program {
 
     public static void main(String[] args) {
         Canvas Canvas = new Canvas();
-        new RigidBodyBuilder(Canvas)
+//        Canvas.displayTime = true;
+        RigidBody rb1 = new RigidBodyBuilder(Canvas)
                 .setId("test1")
                 .setMass(5)
                 .setPosition(new Point(0, 0))
                 .setColour(Color.BLUE)
-                .setColliderFile("mesh2")
+                .setColliderFile("mesh1")
                 .setGravity(true)
                 .setElasticity(1)
                 .setRigidity(0)
                 .createRigidBody();
-
+        rb1.Forces.add(new RigidBody.LocalForce(new Vector(10, 0),
+                new Point(-1, -1),
+                0.1));
         new RigidBodyBuilder(Canvas)
                 .setId("floor")
                 .setMass(1000)

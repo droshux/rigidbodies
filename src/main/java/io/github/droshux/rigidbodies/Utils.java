@@ -1,5 +1,6 @@
 package io.github.droshux.rigidbodies;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
@@ -14,16 +15,28 @@ public class Utils {
 
     public static final String pathToMeshes = "src/main/resources/meshes/";
     public static final Vector g = new Vector(0, -9.81);
+    public static final Matrix rotate90 = new Matrix(0, -1, 1, 0);
 
-    public static Vector VectorAdd(Vector v1, Vector v2) {
+    public static void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+
+    @Contract("_, _ -> new")
+    public static @NotNull Vector VectorAdd(@NotNull Vector v1, @NotNull Vector v2) {
         return new Vector(v1.x + v2.x, v1.y + v2.y);
     }
-    public static Vector VectorScalarMultiply(Vector v1, double Scalar) {
-        /*Vector tempVector = new Vector(0, 0);
-        tempVector.setDirectionAndMagnitude(tempVector.getDirection(), tempVector.getMagnitude() * Scalar);
-        return tempVector;*/
+    @Contract("_, _ -> new")
+    public static @NotNull Vector VectorScalarMultiply(@NotNull Vector v1, double Scalar) {
         return new Vector(v1.x * Scalar, v1.y * Scalar);
     }
+
+    //From: https://www.mathsisfun.com/algebra/vectors-dot-product.html
+    public static double DotProduct(Vector v1, Vector v2) {return v1.x * v2.x + v1.y * v2.y;}
+
+    @Contract("_, _ -> new")
+    public static @NotNull Matrix ScalarMultiply(@NotNull Matrix M, double scalar) {return new Matrix(scalar * M.i.x, scalar * M.j.x,
+                                                                                scalar * M.i.y, scalar * M.j.y);}
 
     public static double Round(double input, int sf) {
         BigDecimal bigDecimal = new BigDecimal(input);
@@ -31,8 +44,9 @@ public class Utils {
         return bigDecimal.floatValue();
     }
 
-    public static double getGradient(Point p1, Point p2) {return Math.abs(p1.y - p2.y) / Math.abs(p1.x - p2.x);}
-    public static double get_Y_intercept(Point p1, Point p2) {return p1.y - getGradient(p1, p2) * p1.x;}
+    public static double getGradient(@NotNull Point p1, @NotNull Point p2) {return Math.abs(p1.y - p2.y) / Math.abs(p1.x - p2.x);}
+    @SuppressWarnings("unused")
+    public static double get_Y_intercept(@NotNull Point p1, Point p2) {return p1.y - getGradient(p1, p2) * p1.x;}
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {
@@ -63,6 +77,29 @@ public class Utils {
                     new Triangle(0, 0, 0, 1, 1, 1),
                     new Triangle(0, 0, 1, 0, 1, 1)
             }; //Return a 1x1 square by default
+        }
+    }
+
+    public static class Matrix {
+        public Vector i = new Vector(1, 0); public Vector j = new Vector(0, 1);
+        public Matrix(double ix, double jx,
+                      double iy, double jy) {i = new Vector(ix, iy); j = new Vector(jx, jy);}
+        @SuppressWarnings("unused")
+        public Matrix() {}
+
+        //https://www.mathsisfun.com/algebra/matrix-inverse.html
+        @SuppressWarnings("unused")
+        public Matrix Inverse() {
+            double determinant = (i.x * j.y) - (j.x * i.y);
+            return ScalarMultiply(new Matrix(j.y, -j.x,
+                                            -i.y, i.x), 1/determinant);
+        }
+
+        @Override
+        public String toString() {
+            return "[" +
+                    i.x + ", " + j.x + "\n" +
+                    i.y + ", " + j.y + ']';
         }
     }
 }

@@ -1,10 +1,8 @@
 package io.github.droshux.rigidbodies;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RigidBody {
@@ -12,6 +10,7 @@ public class RigidBody {
     public  Triangle[] Collider;
     public Point Position;
     public double Mass; //In kilograms
+    public final double MomentOfInertia; //kgm^2
     public final boolean UseGravity;
     public Color Colour;
     public double elasticity;
@@ -19,9 +18,10 @@ public class RigidBody {
 
     public Canvas canvas;
 
-    public List<Vector> Forces = new ArrayList<>();
-    public Vector Velocity = new Vector(0,0);
-    public Vector Weight;
+    public List<LocalForce> Forces = new ArrayList<>();
+    public Vector Velocity = new Vector(); public Vector Acceleration = new Vector();
+    public double AngularVelocity = 0;
+    public LocalForce Weight;
 
     public RigidBody(String id, float mass, Point position, Color col, String colliderFile, Canvas canvasTemplate, boolean useGravity, double elasticity, double rigidity) {
         this.id = id; this.Mass = mass; this.Position = position; this.Colour = col; this.canvas = canvasTemplate; this.UseGravity=useGravity; this.elasticity = elasticity; this.rigidity = rigidity;
@@ -33,8 +33,34 @@ public class RigidBody {
             p.x -= COM.x;
             p.y -= COM.y;
         }
-        if (UseGravity) Weight = Utils.VectorScalarMultiply(Utils.g, Mass);
+        if (UseGravity) Weight = new LocalForce(Utils.VectorScalarMultiply(Utils.g, Mass), new Point(0,0), 1);
+        MomentOfInertia = calculateI();
         canvas.Objects.add(this);
+    }
+
+    private double calculateI() {
+        List<Point> polygon = new ArrayList<>();
+        for (Triangle t : Collider) polygon.addAll(Arrays.asList(t.points)); //Make a list of all points in the mesh
+        polygon = polygon.stream().distinct().collect(Collectors.toList()); //Remove duplicates
+        double Jx = 0;
+        for (int i = 0; i <= polygon.size()-1; i++) {
+            int iPlus = i + 1;
+            if (iPlus >= polygon.size()) iPlus = 0; //Loop round
+            Point Pi = polygon.get(i); Point PiPlus = polygon.get(iPlus); //Get two points
+            Jx += ((Pi.x * PiPlus.y)-(PiPlus.x * Pi.y)) * (Math.pow(Pi.x, 2) + (Pi.x * PiPlus.x) + Math.pow(PiPlus.x, 2));
+        }
+        Jx /= 12;
+
+        double Jy = 0;
+        for (int i = 0; i <= polygon.size()-1; i++) {
+            int iPlus = i + 1;
+            if (iPlus >= polygon.size()) iPlus = 0; //Loop round
+            Point Pi = polygon.get(i); Point PiPlus = polygon.get(iPlus); //Get two points
+            Jy += ((Pi.x * PiPlus.y)-(PiPlus.x * Pi.y)) * (Math.pow(Pi.y, 2) + (Pi.y * PiPlus.y) + Math.pow(PiPlus.y, 2));
+        }
+        Jy /= 12;
+
+        return Math.abs(Jx + Jy);
     }
 
     public Point CenterOfMass() {
@@ -52,7 +78,7 @@ public class RigidBody {
     public void Rotate(double theta) {
         for (Triangle t : Collider)
             for (Point p : t.points) {
-                p.matrixTransform(
+                p.matrixTransformSelf(
                         Math.cos(theta), -Math.sin(theta),
                         Math.sin(theta), Math.cos(theta));
             }
@@ -78,58 +104,76 @@ public class RigidBody {
 
     public void Update(double delta) {
         if (!Forces.contains(Weight) && UseGravity) Forces.add(Weight);
-        Vector acceleration = new Vector(0,0);
-        for (Vector F : Forces) {
-            acceleration = Utils.VectorAdd(acceleration, Utils.VectorScalarMultiply(F, 1/Mass)); //F=ma therefore a=F/m
+        Acceleration = new Vector();
+        /*for (LocalForce F : Forces) {AddForceAtPosition(F, delta);F.duration -= delta; if(F.duration <= 0 & Forces.contains(F))
+            if (!F.equals(Weight)) System.out.println("Removing: " + F);Forces.remove(F);
+        }*/
+        Iterator<LocalForce> i = Forces.iterator();
+        while (i.hasNext()) {
+            LocalForce F = i.next();
+            AddForceAtPosition(F, delta);
+            F.duration -= delta;
+            if (F.duration <= 0) i.remove();
         }
-        Velocity = Utils.VectorAdd(Velocity, acceleration);
-        if (Objects.equals(id, "test1")) {
-            List<Collision> collisions = getCollisions(delta);
-            if (collisions.size() != 0) {
-                Colour = Color.RED;
-                for (Collision c : collisions) ReflectPoint(c);
-            } else Colour = Color.BLUE;
-        }
-        this.Position = new Point(this.Position.x + (Velocity.x * delta), this.Position.y + (Velocity.y * delta));
-    }
-
-    private List<Collision> getCollisions(double delta) {
-        List<Collision> colliderLines = new ArrayList<>();
-        for (Triangle t : Collider) for (Point p : t.points) {
-            double r = Velocity.getMagnitude() * delta; //Radius of circle that contains every location this point could move to.
-            double xPos = LocalToWorldSpace(p).x; double yPos = LocalToWorldSpace(p).y;
-            int[][] permutations = {
-                    {0, 1},
-                    {0, 2},
-                    {1, 2}
-            };
-            for (RigidBody rb : canvas.Objects) for (Triangle otherT : rb.Collider) for (int[] line : permutations) {
-                if (rb != this) {
-                    Point p1 = rb.LocalToWorldSpace(otherT.points[line[0]]); Point p2 = rb.LocalToWorldSpace(otherT.points[line[1]]);
-                    double gradient = Utils.getGradient(p1, p2); double intercept = Utils.get_Y_intercept(p1, p2);
-                    //Now we have all the pieces to find the a, b and c for the discriminant
-                    double a = Math.pow(gradient, 2) + 1;
-                    double b = (2 * gradient * intercept) - (2 * gradient * yPos) - (2* xPos);
-                    double c = Math.pow(xPos, 2) + Math.pow(yPos, 2) + Math.pow(intercept, 2) - (2 * yPos * intercept) - Math.pow(r, 2);
-                    //Time to calculate discriminant
-                    double discriminant = Math.pow(b, 2) - (4 * a * c);
-                    if (discriminant >= 0) colliderLines.add(new Collision(p, new Point[] {p1, p2})); //If the discriminant is less than 0 the line intersects the circle
-                }
-            }
-        }
-        return colliderLines;
-    }
-
-    private void ReflectPoint(Collision collision) {
-        Point p = LocalToWorldSpace(collision.point);
-        double dx = collision.line[1].x - collision.line[0].x;
-        double dy = collision.line[1].y - collision.line[0].y;
-        Vector normal1 = new Vector(-dy, dx); Vector normal2 = new Vector(dy, -dx); Vector normal;
+        Velocity = Utils.VectorAdd(Velocity, Acceleration);
+        Position = Utils.VectorAdd(new Vector(Position), Utils.VectorScalarMultiply(Velocity, delta));
+        Rotate(AngularVelocity * delta);
 
     }
 
-    private static class Collision {
-        public Point point; public Point[] line;
-        public Collision(Point p, Point[] l) {point = p; line = l;}
+    @SuppressWarnings("unused")
+    public void AddForceAtPosition(Vector force, Point localPosition, double delta) {
+        Acceleration = Utils.VectorAdd(Acceleration, Utils.VectorScalarMultiply(force, delta/Mass));
+        double Torque = localPosition.x * force.y - localPosition.y * force.x; //2D torque calculation
+        AngularVelocity += Torque * delta / MomentOfInertia;
+    }
+
+    public void AddForceAtPosition(LocalForce F, double delta) {
+        Acceleration = Utils.VectorAdd(Acceleration, Utils.VectorScalarMultiply(F.forceVector, delta/Mass));
+        double Torque = F.localPosition.x * F.forceVector.y - F.localPosition.y * F.forceVector.x; //2D torque calculation
+        AngularVelocity += Torque * delta / MomentOfInertia;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RigidBody)) return false;
+        RigidBody rigidBody = (RigidBody) o;
+        return Double.compare(rigidBody.Mass, Mass) == 0 && Double.compare(rigidBody.MomentOfInertia, MomentOfInertia) == 0 && UseGravity == rigidBody.UseGravity && Double.compare(rigidBody.elasticity, elasticity) == 0 && Double.compare(rigidBody.rigidity, rigidity) == 0 && id.equals(rigidBody.id) && Colour.equals(rigidBody.Colour);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, Mass, MomentOfInertia, UseGravity, Colour, elasticity, rigidity);
+    }
+
+    public static class LocalForce {
+        public Vector forceVector;
+        public Point localPosition;
+
+        public double duration;
+
+        public LocalForce(Vector forceVector, Point localPosition, double duration) {this.forceVector = forceVector; this.localPosition = localPosition; this.duration = duration;}
+
+        @Override
+        public String toString() {
+            return "LocalForce{" +
+                    "forceVector=" + forceVector +
+                    ", localPosition=" + localPosition +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            LocalForce that = (LocalForce) o;
+            return forceVector.equals(that.forceVector) && localPosition.equals(that.localPosition);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(forceVector, localPosition);
+        }
     }
 }
