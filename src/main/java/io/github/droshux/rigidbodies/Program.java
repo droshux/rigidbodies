@@ -5,14 +5,14 @@ import java.awt.*;
 public class Program {
 
     public static void main(String[] args) {
-        Canvas Canvas = new Canvas();
+        Canvas Canvas = new Canvas(640, 480, 10, 3);
 //        Canvas.displayTime = true;
         RigidBody rb1 = new RigidBodyBuilder(Canvas)
                 .setId("test1")
                 .setMass(5)
                 .setPosition(new Point(0, 0))
                 .setColour(Color.BLUE)
-                .setColliderFile("mesh1")
+                .setColliderFile("complex")
                 .setGravity(true)
                 .setElasticity(1)
                 .setRigidity(0)
@@ -28,6 +28,7 @@ public class Program {
                 .setGravity(false)
                 .setColliderFile("floor")
                 .createRigidBody();
-        Canvas.start();
+        //Canvas.start();
+
     }
 }

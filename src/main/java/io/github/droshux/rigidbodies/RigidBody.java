@@ -1,5 +1,6 @@
 package io.github.droshux.rigidbodies;
 
+import javax.xml.stream.FactoryConfigurationError;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.stream.Collectors;
 public class RigidBody {
     public String id;
     public  Triangle[] Collider;
+    public List<Point> convexHull = new ArrayList<>();
     public Point[] BoundingBox = new Point[2]; //Axis aligned bounding box in world space. [0] is bottom left and [1] is top right
     public Point Position;
     public double Mass; //In kilograms
@@ -42,7 +44,7 @@ public class RigidBody {
     private double calculateI() {
         List<Point> polygon = new ArrayList<>();
         for (Triangle t : Collider) polygon.addAll(Arrays.asList(t.points)); //Make a list of all points in the mesh
-        polygon = polygon.stream().distinct().collect(Collectors.toList()); //Remove duplicates
+        polygon = Utils.removeDuplicates(polygon); //Remove duplicates
         double Jx = 0;
         for (int i = 0; i <= polygon.size()-1; i++) {
             int iPlus = i + 1;
@@ -67,13 +69,14 @@ public class RigidBody {
     public Point CenterOfMass() {
         List<Point> MeshPoints = new ArrayList<>();
         for (Triangle t : Collider) MeshPoints.addAll(Arrays.asList(t.points)); //Make a list of all points in the mesh
-        MeshPoints = MeshPoints.stream().distinct().collect(Collectors.toList()); //Remove duplicates
+        MeshPoints = Utils.removeDuplicates(MeshPoints); //Remove duplicates
         float totalX = 0; float totalY = 0; //Calculate mean...
         for (Point point : MeshPoints) {
             totalX += point.x; totalY += point.y;
         }
         totalX /= MeshPoints.size(); totalY /= MeshPoints.size();
-        return new Point(totalX, totalY); //Return :)
+        return new Point(0, 0); //TODO turn center of mass back on
+        //return new Point(totalX, totalY); //Return :)
     }
 
     public void Rotate(double theta) {
@@ -86,9 +89,9 @@ public class RigidBody {
     }
 
     @SuppressWarnings("unused")
-    private Point LocalToWorldSpace(Point p) {return new Point(this.Position.x + p.x, this.Position.y + p.y);}
+    public Point LocalToWorldSpace(Point p) {return new Point(this.Position.x + p.x, this.Position.y + p.y);}
     @SuppressWarnings("unused")
-    private Point WorldToLocalSpace(Point p) {return new Point(p.x-this.Position.x, p.y-this.Position.y);}
+    public Point WorldToLocalSpace(Point p) {return new Point(p.x-this.Position.x, p.y-this.Position.y);}
 
     @SuppressWarnings("unused")
     public void RotateAboutPoint(Point point, double theta) {
@@ -141,6 +144,17 @@ public class RigidBody {
             minY = Math.min(p.y, minY); maxY = Math.max(p.y, maxY);
         }
         BoundingBox[0] = LocalToWorldSpace(new Point(minX, minY)); BoundingBox[1] = LocalToWorldSpace(new Point(maxX, maxY));
+    }
+
+    public boolean contains(Point p) {
+        boolean output = false;
+
+        for (Triangle t : this.Collider) {
+            output = t.contains(p);
+            if (output) break;
+        }
+
+        return  output;
     }
 
     @Override

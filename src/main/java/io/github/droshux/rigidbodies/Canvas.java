@@ -14,7 +14,10 @@ public class Canvas extends java.awt.Canvas implements Runnable{
     final private JFrame frame;
 
     @SuppressWarnings("FieldCanBeLocal")
-    private final int CANVAS_WIDTH = 640, CANVAS_HEIGHT = 480, FPS = 60;
+    private final int CANVAS_WIDTH , CANVAS_HEIGHT, FPS = 60;
+
+    public final int COLLISION_BREADTH;
+    public final int COLLISION_DEPTH;
 
     private boolean running = false;
 
@@ -23,7 +26,10 @@ public class Canvas extends java.awt.Canvas implements Runnable{
     public final int pixelsPerMeter = 25;
     public double timePassed = 0; public boolean displayTime = false;
 
-    public Canvas() {
+    public Canvas(int W, int H, int B, int D) {
+
+        CANVAS_WIDTH = W; CANVAS_HEIGHT = H; COLLISION_BREADTH = B; COLLISION_DEPTH = D;
+
         frame = new JFrame("FPS: ~ TPS: ~");
         frame.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
         frame.setResizable(false);
@@ -84,12 +90,25 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         List<RigidBody[]> xIntersects = getBroadPhaseCollisionPairs(false);
         List<RigidBody[]> yIntersects = getBroadPhaseCollisionPairs(true);
         List<RigidBody[]> CollisionPairs = new ArrayList<>();
-        for (RigidBody[] rbAx : xIntersects) for (RigidBody[] rbAy : yIntersects) if (Arrays.stream(rbAx).toList().contains(rbAy[0]) || Arrays.stream(rbAx).toList().contains(rbAy[1])) CollisionPairs.add(rbAx);
+        for (RigidBody[] rbAx : xIntersects) {
+            for (RigidBody[] rbAy : yIntersects) {
+                if (Arrays.stream(rbAx).toList().contains(rbAy[0]) || Arrays.stream(rbAx).toList().contains(rbAy[1])) {
+                    CollisionPairs.add(rbAx);
+                }
+            }
+        }
 
         if (CollisionPairs.size() > 0) {
             System.out.println("This frame's collisions:");
-            for (RigidBody[] rbA: CollisionPairs) System.out.println(rbA[0].id + " and " + rbA[1].id);
+            for (RigidBody[] rbA: CollisionPairs) {
+                System.out.println(rbA[0].id + " and " + rbA[1].id);
+                narrowPhase(rbA[0], rbA[1]);
+            }
         }
+    }
+
+    private void narrowPhase(RigidBody rb1, RigidBody rb2) {
+
     }
 
     @SuppressWarnings("BusyWait")
@@ -193,10 +212,14 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         for (sortAndSweepValue v : values) { //Sweep through them
             //However if it is an end then find and remove the corresponding end
             if (v.isBeginning) {
-                activeIntervals.add(v); //If the value is a beginning of an interval add it to the list of active intervals
-                for (sortAndSweepValue other : activeIntervals) if (!other.equals(v)) output.add(new RigidBody[]{v.parent, other.parent}); //and add pairs with all active intervals to output
+                activeIntervals.add(v);
+                //If the value is a beginning of an interval add it to the list of active intervals
+                for (sortAndSweepValue other : activeIntervals)
+                    if (!other.equals(v))
+                        output.add(new RigidBody[]{v.parent, other.parent}); //and add pairs with all active intervals to output
             }
-            else activeIntervals.removeIf(b -> b.isBeginning && b.parent.equals(v.parent)); //if it is an end remove the corresponding beginning from active intervals
+            else activeIntervals.removeIf(b -> b.isBeginning && b.parent.equals(v.parent));
+            //if it is an end remove the corresponding beginning from active intervals
         }
         return output;
     }

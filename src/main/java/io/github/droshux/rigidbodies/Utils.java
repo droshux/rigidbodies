@@ -10,13 +10,13 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Utils {
 
     public static final String pathToMeshes = "src/main/resources/meshes/";
     public static final Vector g = new Vector(0, -9.81);
     public static final Matrix rotate90 = new Matrix(0, -1, 1, 0);
-
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
@@ -44,9 +44,62 @@ public class Utils {
         return bigDecimal.floatValue();
     }
 
+    public static <T> List<T> removeDuplicates(List<T> list) {
+        return list.stream().distinct().collect(Collectors.toList());
+    }
+
     public static double getGradient(@NotNull Point p1, @NotNull Point p2) {return Math.abs(p1.y - p2.y) / Math.abs(p1.x - p2.x);}
     @SuppressWarnings("unused")
     public static double get_Y_intercept(@NotNull Point p1, Point p2) {return p1.y - getGradient(p1, p2) * p1.x;}
+
+    public static double linearFunction(double xInput, Point[] twoPoints) {return getGradient(twoPoints[0], twoPoints[1]) * xInput + get_Y_intercept(twoPoints[0], twoPoints[1]);}
+    public static double[] AXplusBYplusC(Point[] twoPoints) {
+        double[] output = new double[3];
+        output[0] = -getGradient(twoPoints[0], twoPoints[1]); //A
+        output[1] = 1; //B
+        output[2] = getGradient(twoPoints[0], twoPoints[1]) * twoPoints[0].x - twoPoints[0].y;
+        return  output;
+    }
+    public static double distanceToLine(Point inPoint, double[] ABC) {
+        return Math.abs(ABC[0] * inPoint.x + ABC[1] * inPoint.y + ABC[2]) / Math.sqrt(Math.pow(ABC[0], 2) + Math.pow(ABC[1], 2)); //From: https://www.cuemath.com/geometry/distance-of-a-point-from-a-line/
+    }
+
+    /*public static List<Point> narrowPhase(RigidBody rb1, RigidBody rb2) {
+        //Initialise check space
+        Point bottomLeft = new Point(Math.min(rb1.BoundingBox[0].x, rb2.BoundingBox[0].x), Math.min(rb1.BoundingBox[0].y, rb2.BoundingBox[0].y));
+        Point topRight = new Point(Math.max(rb1.BoundingBox[1].x, rb2.BoundingBox[1].x), Math.max(rb1.BoundingBox[1].y, rb2.BoundingBox[1].y));
+        List<Point> collisions = new ArrayList<>();
+
+        for (int depth = 0; depth < collisionDepth; depth++) {
+            double dx = (topRight.x - bottomLeft.y) / Math.pow(collisionBreadth, 2);
+            double dy = (topRight.y - bottomLeft.y) / Math.pow(collisionBreadth, 2);
+            collisions.addAll(searchArea(rb1, rb2, bottomLeft, topRight));
+            if (collisions.size() == 0) break;
+
+        }
+
+        //If the search completes without finding anything return false
+        return removeDuplicates(collisions);
+    }
+
+    private static List<Point> searchArea(RigidBody rb1, RigidBody rb2, Point bottomLeft, Point topRight) {
+        final double dx = (topRight.x - bottomLeft.y) / collisionBreadth;
+        final double dy = (topRight.y - bottomLeft.y) / collisionBreadth;
+
+        List<Point> output = new ArrayList<>();
+
+        //Iterate through the space
+        for (double x = bottomLeft.x; x <= topRight.x; x += dx) {
+            for (double y = bottomLeft.y; y <= topRight.y; y += dy) {
+                //If both rigid bodies contain the point they are overlapping at that point
+                final Point checkPos = new Point(x, y);
+                if (rb1.contains(checkPos) && rb2.contains(checkPos)) output.add(checkPos);
+            }
+        }
+
+        //If the search completes without finding anything return false
+        return output;
+    }*/
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {
