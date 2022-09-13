@@ -20,7 +20,7 @@ public class Program {
         rb1.Forces.add(new RigidBody.LocalForce(new Vector(10, 0),
                 new Point(-1, -1),
                 0.1));
-        new RigidBodyBuilder(Canvas)
+        RigidBody floor = new RigidBodyBuilder(Canvas)
                 .setId("floor")
                 .setMass(1000)
                 .setPosition(new Point(0, -5))
@@ -28,6 +28,12 @@ public class Program {
                 .setGravity(false)
                 .setColliderFile("floor")
                 .createRigidBody();
-        Canvas.start();
+        //Canvas.start();
+        System.out.println(floor.contains(Utils.VectorAdd(new Vector(floor.Collider[0].points[0]), new Vector(0.2, 0.2))));
+        System.out.println(floor.contains(Utils.VectorAdd(new Vector(floor.Collider[0].points[0]), new Vector(-0.2, -0.2))));
+
+        Triangle t1 = new Triangle(new Point(-1, -1), new Point(1, -1), new Point(0, 2));
+        System.out.println(t1.contains(new Point(0, 0)));
+        System.out.println(t1.contains(new Point(0, -2)));
     }
 }

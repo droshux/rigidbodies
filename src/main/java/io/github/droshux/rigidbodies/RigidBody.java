@@ -1,15 +1,12 @@
 package io.github.droshux.rigidbodies;
 
-import javax.xml.stream.FactoryConfigurationError;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RigidBody {
     public String id;
     public  Triangle[] Collider;
-    public List<Point> convexHull = new ArrayList<>();
     public Point[] BoundingBox = new Point[2]; //Axis aligned bounding box in world space. [0] is bottom left and [1] is top right
     public Point Position;
     public double Mass; //In kilograms
@@ -75,8 +72,7 @@ public class RigidBody {
             totalX += point.x; totalY += point.y;
         }
         totalX /= MeshPoints.size(); totalY /= MeshPoints.size();
-        return new Point(0, 0); //TODO turn center of mass back on
-        //return new Point(totalX, totalY); //Return :)
+        return new Point(totalX, totalY); //Return :)
     }
 
     public void Rotate(double theta) {
@@ -150,7 +146,8 @@ public class RigidBody {
         boolean output = false;
 
         for (Triangle t : this.Collider) {
-            output = t.contains(p);
+            output = t.contains(WorldToLocalSpace(p));
+            System.out.println("CONTAINS" + output);
             if (output) break;
         }
 

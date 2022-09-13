@@ -112,11 +112,20 @@ public class Canvas extends java.awt.Canvas implements Runnable{
         final Point TR = new Point(Math.max(rb1.BoundingBox[1].x, rb2.BoundingBox[1].x), Math.max(rb1.BoundingBox[1].y, rb2.BoundingBox[1].y));
 
         List<CollisionSearchDaemon> daemonList = new ArrayList<>(); //DEMON CORE!!
+        List<CollisionSearchDaemon> daemonBuffer = new ArrayList<>();;
         List<Point> collisionPoints = new ArrayList<>();
 
-        daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0, daemonList, collisionPoints));
-
-        while (daemonList.size() > 0) for (CollisionSearchDaemon daemon : daemonList) daemon.Search();
+        daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0, daemonBuffer, collisionPoints));
+        while (daemonList.size() > 0) {
+            daemonBuffer = new ArrayList<>();
+            System.out.println("DAEMON LIST LENGTH: " + daemonList.size());
+            for (int i = 0; i < daemonList.size(); i++) {
+                CollisionSearchDaemon daemon = daemonList.get(i);
+                daemon.Search();
+            }
+            //Overwrite the daemons with the buffer
+            daemonList = new ArrayList<>(daemonBuffer);
+        }
 
         for (Point p : collisionPoints) System.out.println(p);
     }
