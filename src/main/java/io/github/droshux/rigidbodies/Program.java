@@ -28,7 +28,6 @@ public class Program {
                 .setGravity(false)
                 .setColliderFile("floor")
                 .createRigidBody();
-        //Canvas.start();
-
+        Canvas.start();
     }
 }

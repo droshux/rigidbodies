@@ -33,5 +33,7 @@ public class CollisionSearchDaemon {
 				 }
 			 }
 		 }
+
+		 daemons.remove(this);//KYS!
 	}
 }

@@ -108,7 +108,17 @@ public class Canvas extends java.awt.Canvas implements Runnable{
     }
 
     private void narrowPhase(RigidBody rb1, RigidBody rb2) {
+        final Point BL = new Point(Math.min(rb1.BoundingBox[0].x, rb2.BoundingBox[0].x), Math.min(rb1.BoundingBox[0].y, rb2.BoundingBox[0].y));
+        final Point TR = new Point(Math.max(rb1.BoundingBox[1].x, rb2.BoundingBox[1].x), Math.max(rb1.BoundingBox[1].y, rb2.BoundingBox[1].y));
 
+        List<CollisionSearchDaemon> daemonList = new ArrayList<>(); //DEMON CORE!!
+        List<Point> collisionPoints = new ArrayList<>();
+
+        daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0, daemonList, collisionPoints));
+
+        while (daemonList.size() > 0) for (CollisionSearchDaemon daemon : daemonList) daemon.Search();
+
+        for (Point p : collisionPoints) System.out.println(p);
     }
 
     @SuppressWarnings("BusyWait")
