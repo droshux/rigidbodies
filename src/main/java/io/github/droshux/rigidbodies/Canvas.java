@@ -111,15 +111,14 @@ public class Canvas extends java.awt.Canvas implements Runnable {
         }
 
         if (CollisionPairs.size() > 0) {
-            System.out.println("This frame's collisions:");
             for (RigidBody[] rbA : CollisionPairs) {
-                System.out.println(rbA[0].id + " and " + rbA[1].id);
-                narrowPhase(rbA[0], rbA[1]);
+                List<Point> cPoints = narrowPhase(rbA[0], rbA[1]);
+                System.out.println(cPoints.size());
             }
         }
     }
 
-    private void narrowPhase(RigidBody rb1, RigidBody rb2) {
+    private List<Point> narrowPhase(RigidBody rb1, RigidBody rb2) {
         final Point BL = new Point(Math.min(rb1.BoundingBox[0].x, rb2.BoundingBox[0].x),
                 Math.min(rb1.BoundingBox[0].y, rb2.BoundingBox[0].y));
         final Point TR = new Point(Math.max(rb1.BoundingBox[1].x, rb2.BoundingBox[1].x),
@@ -127,23 +126,24 @@ public class Canvas extends java.awt.Canvas implements Runnable {
 
         List<CollisionSearchDaemon> daemonList = new ArrayList<>(); // DEMON CORE!!
         List<CollisionSearchDaemon> daemonBuffer = new ArrayList<>();
-        ;
         List<Point> collisionPoints = new ArrayList<>();
 
-        daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0, daemonBuffer, collisionPoints));
+        daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0));
         while (daemonList.size() > 0) {
             daemonBuffer = new ArrayList<>();
             // System.out.println("DAEMON LIST LENGTH: " + daemonList.size());
             for (int i = 0; i < daemonList.size(); i++) {
-                CollisionSearchDaemon daemon = daemonList.get(i);
-                daemon.Search();
+                CollisionSearchDaemon daemon = daemonList.get(i); // Get a daemon from the list
+                final CollisionSearchDaemon.DaemonResults sResults = daemon.Search(); // Search space for all points
+                daemonBuffer.addAll(sResults.daemonBuffer()); // take the new generation out of the record
+                collisionPoints.addAll(sResults.outputPoints()); // take the collision point out the record
             }
+
             // Overwrite the daemons with the buffer
             daemonList = new ArrayList<>(daemonBuffer);
         }
 
-        for (Point p : collisionPoints)
-            System.out.println(p);
+        return collisionPoints;
     }
 
     @SuppressWarnings("BusyWait")
