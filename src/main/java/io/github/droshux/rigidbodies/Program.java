@@ -5,7 +5,7 @@ import java.awt.*;
 public class Program {
 
         public static void main(String[] args) {
-                Canvas Canvas = new Canvas(640, 480, 10, 3);
+                Canvas Canvas = new Canvas(640, 480, 10, 4);
                 // Canvas.displayTime = true;
 
                 RigidBody rb1 = new RigidBodyBuilder(Canvas)
@@ -30,23 +30,15 @@ public class Program {
                                 .setColliderFile("floor")
                                 .createRigidBody();
 
-                /*
-                 * RigidBody rbTest = new RigidBodyBuilder(Canvas)
-                 * .setId("testBox")
-                 * .setPosition(new Point(0, 0))
-                 * .setColliderFile("mesh1")
-                 * .createRigidBody();
-                 */
+                new RigidBodyBuilder(Canvas)
+                                .setId("testBox")
+                                .setPosition(new Point(0, -3))
+                                .setColliderFile("mesh1")
+                                .setMass(0)
+                                .setGravity(false)
+                                .setColour(Color.RED)
+                                .createRigidBody();
 
                 Canvas.start();
-                /*
-                 * System.out.println(rbTest.contains(new Point(0, 0)));
-                 * System.out.println(rbTest.contains(new Point(10, 10)));
-                 * 
-                 * Triangle t1 = new Triangle(new Point(-1, -1), new Point(1, -1), new Point(0,
-                 * 2));
-                 * System.out.println(t1.contains(new Point(0, 0)));
-                 * System.out.println(t1.contains(new Point(0, -2)));
-                 */
         }
 }
