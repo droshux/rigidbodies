@@ -113,7 +113,8 @@ public class Canvas extends java.awt.Canvas implements Runnable {
         if (CollisionPairs.size() > 0) {
             for (RigidBody[] rbA : CollisionPairs) {
                 List<Point> cPoints = narrowPhase(rbA[0], rbA[1]);
-                System.out.println(cPoints.size());
+                if (cPoints.size() > 0)
+                    System.out.println(cPoints.size());
             }
         }
     }
