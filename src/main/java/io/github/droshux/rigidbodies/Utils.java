@@ -8,6 +8,7 @@ import java.math.MathContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
@@ -22,6 +23,10 @@ public class Utils {
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
+    }
+
+    public static int RandInt(int Min, int Max) {
+        return Min + (int) (Math.random() * ((Max - Min) + 1));
     }
 
     @Contract("_, _ -> new")
@@ -82,6 +87,50 @@ public class Utils {
                                                                         // https://www.cuemath.com/geometry/distance-of-a-point-from-a-line/
     }
 
+    public static Cluster[] Kmeans(List<Point> points, int K) {
+        Cluster[] output = new Cluster[K];
+        Cluster[] previous = new Cluster[K];
+        do {
+            // Create the clusters based on random points
+            List<Point> startPoints = new ArrayList<>();
+            for (int i = 0; i < K; i++) {
+                if (output[i] == null) {
+                    Point InitialPoint = points.get(RandInt(0, points.size() - 1));
+                    while (startPoints.contains(InitialPoint)) {
+                        InitialPoint = points.get(RandInt(0, points.size() - 1));
+                    }
+                    startPoints.add(InitialPoint);
+                    output[i] = new Cluster(InitialPoint);
+                } else {
+                    output[i] = new Cluster(previous[i].Centroid());
+                }
+            }
+
+            // Assign all points to their nearest cluster
+            for (Point p : points) {
+                if (!startPoints.contains(p)) {
+                    double minDistance = Double.MAX_VALUE;
+                    Cluster bestCluster = output[0];
+                    for (Cluster C : output) {
+                        if (p.DistanceTo(C.Centroid()) < minDistance) {
+                            minDistance = p.DistanceTo(C.Centroid());
+                            bestCluster = C;
+                        }
+                    }
+                    bestCluster.addPoint(p);
+                }
+            }
+
+            // If nothing has changed: exit the loop
+            List<Cluster> prev = new ArrayList<>(Arrays.asList(previous));
+            List<Cluster> outP = new ArrayList<>(Arrays.asList(output));
+            if (!(prev.containsAll(outP) && outP.containsAll(prev)))
+                break;
+        } while (true);
+
+        return output;
+    }
+
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {
             Scanner fileReader = new Scanner(new File(pathToMeshes + filePath + ".txt")); // Create file reader
@@ -113,6 +162,80 @@ public class Utils {
                     new Triangle(0, 0, 0, 1, 1, 1),
                     new Triangle(0, 0, 1, 0, 1, 1)
             }; // Return a 1x1 square by default
+        }
+    }
+
+    public static class Cluster {
+        public List<Point> clusterPoints;
+        private Point centroid;
+        private boolean needsUpdate = true;
+
+        public Cluster(Point initPoint) {
+            clusterPoints = new ArrayList<>();
+            clusterPoints.add(initPoint);
+        }
+
+        public void addPoint(Point p) {
+            clusterPoints.add(p);
+            needsUpdate = true;
+        }
+
+        /*
+         * public void correctErrors() {
+         * double[] distances = new double[clusterPoints.size()];
+         * for (int i = 0; i < distances.length; i++) {
+         * distances[i] = clusterPoints.get(i).DistanceTo(centroid);
+         * }
+         * 
+         * }
+         */
+
+        public Point Centroid() {
+            if (needsUpdate) {
+                double x = 0;
+                double y = 0;
+                for (Point p : clusterPoints) {
+                    x += p.x;
+                    y += p.y;
+                }
+                x /= clusterPoints.size();
+                y /= clusterPoints.size();
+                centroid = new Point(x, y);
+                needsUpdate = false;
+                return new Point(x, y);
+            } else {
+                return centroid;
+            }
+        }
+
+        public boolean equals(Cluster other) {
+            if (other == null) {
+                return false;
+            }
+
+            if (clusterPoints.size() != other.clusterPoints.size())
+                return false;
+
+            if (Centroid() != other.Centroid())
+                return false;
+
+            for (Point p : clusterPoints)
+                if (!other.clusterPoints.contains(p))
+                    return false;
+
+            return true;
+        }
+
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Centroid: " + Centroid().toString() + "\n");
+            sb.append("Cluster Points:\n");
+            for (Point p : clusterPoints) {
+                sb.append("  ");
+                sb.append(p.x).append(",");
+                sb.append(p.y).append("\n");
+            }
+            return sb.toString();
         }
     }
 
