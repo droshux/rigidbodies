@@ -128,6 +128,10 @@ public class Utils {
                 break;
         } while (true);
 
+        for (int i = 0; i < output.length; i++) {
+            output[i].correctErrors(1.5);
+        }
+
         return output;
     }
 
@@ -180,15 +184,41 @@ public class Utils {
             needsUpdate = true;
         }
 
-        /*
-         * public void correctErrors() {
-         * double[] distances = new double[clusterPoints.size()];
-         * for (int i = 0; i < distances.length; i++) {
-         * distances[i] = clusterPoints.get(i).DistanceTo(centroid);
-         * }
-         * 
-         * }
+        public void removePoint(Point p) {
+            clusterPoints.remove(p);
+            needsUpdate = true;
+        }
+
+        /**
+         * @param leniency Any points more than leniency * mean distance from the
+         *                 centroid are removed
          */
+        public void correctErrors(double leniency) {
+            double[] distances = new double[clusterPoints.size()];
+            double mean = 0;
+            for (int i = 0; i < distances.length; i++) {
+                distances[i] = clusterPoints.get(i).DistanceTo(centroid);
+                mean += distances[i];
+            }
+            mean /= distances.length;
+            /*
+             * double standardDeviation = 0;
+             * for (int i = 0; i < distances.length; i++) {
+             * standardDeviation += (distances[i] - mean) * (distances[i] - mean);
+             * }
+             * standardDeviation = Math.sqrt(standardDeviation / distances.length);
+             */
+            List<Point> newClusterPoints = new ArrayList<>();
+            for (int i = 0; i < distances.length; i++) {
+                if (distances[i] <= leniency * mean) {
+                    newClusterPoints.add(clusterPoints.get(i));
+                } else
+                    System.out.println("Error corrected!");
+            }
+            clusterPoints = new ArrayList<>();
+            clusterPoints.addAll(newClusterPoints);
+            needsUpdate = true;
+        }
 
         public Point Centroid() {
             if (needsUpdate) {
@@ -227,15 +257,19 @@ public class Utils {
         }
 
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Centroid: " + Centroid().toString() + "\n");
-            sb.append("Cluster Points:\n");
-            for (Point p : clusterPoints) {
-                sb.append("  ");
-                sb.append(p.x).append(",");
-                sb.append(p.y).append("\n");
+            if (clusterPoints.size() > 0) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Centroid: " + Centroid().toString() + "\n");
+                sb.append("Cluster Points:\n");
+                for (Point p : clusterPoints) {
+                    sb.append("  ");
+                    sb.append(p);
+                    sb.append("\n");
+                }
+                return sb.toString();
+            } else {
+                return "EMPTY CLUSTER";
             }
-            return sb.toString();
         }
     }
 
