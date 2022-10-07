@@ -107,17 +107,14 @@ public class RigidBody {
             }
     }
 
-    @SuppressWarnings("unused")
     public Point LocalToWorldSpace(Point p) {
         return new Point(this.Position.x + p.x, this.Position.y + p.y);
     }
 
-    @SuppressWarnings("unused")
     public Point WorldToLocalSpace(Point p) {
         return new Point(p.x - this.Position.x, p.y - this.Position.y);
     }
 
-    @SuppressWarnings("unused")
     public void RotateAboutPoint(Point point, double theta) {
         for (Triangle t : Collider)
             for (Point p : t.points) {
@@ -150,7 +147,6 @@ public class RigidBody {
         UpdateBoundingBox();
     }
 
-    @SuppressWarnings("unused")
     public void AddForceAtPosition(Vector force, Point localPosition, double delta) {
         Acceleration = Utils.VectorAdd(Acceleration, Utils.VectorScalarMultiply(force, delta / Mass));
         double Torque = localPosition.x * force.y - localPosition.y * force.x; // 2D torque calculation

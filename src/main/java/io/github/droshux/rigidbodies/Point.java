@@ -34,7 +34,6 @@ public class Point {
         y = yOUT;
     }
 
-    @SuppressWarnings("unused")
     public void matrixTransformSelf(Utils.Matrix M) {
         double xOUT = (M.i.x * x) + (M.j.x * y);
         double yOUT = (M.i.y * x) + (M.j.y * y);
@@ -43,7 +42,6 @@ public class Point {
         y = yOUT;
     }
 
-    @SuppressWarnings("unused")
     public Point matrixTransform(double ix, double jx,
             double iy, double jy) {
         double xOUT = (ix * x) + (jx * y);
@@ -52,7 +50,6 @@ public class Point {
         return new Point(xOUT, yOUT);
     }
 
-    @SuppressWarnings("unused")
     public Point matrixTransform(Utils.Matrix M) {
         double xOUT = (M.i.x * x) + (M.j.x * y);
         double yOUT = (M.i.y * x) + (M.j.y * y);

@@ -64,7 +64,6 @@ public class Utils {
         return Math.abs(p1.y - p2.y) / Math.abs(p1.x - p2.x);
     }
 
-    @SuppressWarnings("unused")
     public static double get_Y_intercept(@NotNull Point p1, Point p2) {
         return p1.y - getGradient(p1, p2) * p1.x;
     }
@@ -283,12 +282,10 @@ public class Utils {
             j = new Vector(jx, jy);
         }
 
-        @SuppressWarnings("unused")
         public Matrix() {
         }
 
         // https://www.mathsisfun.com/algebra/matrix-inverse.html
-        @SuppressWarnings("unused")
         public Matrix Inverse() {
             double determinant = (i.x * j.y) - (j.x * i.y);
             return ScalarMultiply(new Matrix(j.y, -j.x,
