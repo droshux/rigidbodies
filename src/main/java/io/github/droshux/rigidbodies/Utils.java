@@ -134,6 +134,66 @@ public class Utils {
         return output;
     }
 
+    // Code stolen from:
+    // https://www.geeksforgeeks.org/java-program-to-calculate-standard-deviation/
+    private double standardDeviation(double[] arr) {
+        double sum = 0;
+        double mean = 0;
+        double standardDeviation = 0;
+        double sq = 0;
+        double res = 0;
+
+        int n = arr.length;
+
+        System.out.println("Elements are:");
+        for (int i = 0; i < n; i++) {
+            System.out.println(arr[i]);
+        }
+
+        for (int i = 0; i < n; i++) {
+            sum = sum + arr[i];
+        }
+
+        mean = sum / (n);
+
+        for (int i = 0; i < n; i++) {
+
+            standardDeviation = standardDeviation + Math.pow((arr[i] - mean), 2);
+
+        }
+
+        sq = standardDeviation / n;
+        res = Math.sqrt(sq);
+        return res;
+    }
+
+    // From: https://en.wikipedia.org/wiki/Mahalanobis_distance
+    private double MahanalobisDistance(Point p, Cluster C) {
+        double[] distances = new double[C.clusterPoints.size()];
+        for (int i = 0; i < distances.length; i++) {
+            distances[i] = C.clusterPoints.get(i).DistanceTo(C.Centroid());
+        }
+        final double sd = standardDeviation(distances);
+        return p.DistanceTo(C.Centroid()) / sd;
+    }
+
+    // https://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
+    public int optimalK(List<Point> points) {
+        /*
+         * JumpMethod(X):
+         * Let Y = (p/2)
+         * Init a list D, of size n+1
+         * Let D[0] = 0
+         * For k = 1 ... n:
+         * Cluster X with k clusters (e.g., with k-means)
+         * Let d = Distortion of the resulting clustering
+         * D[k] = d^(-Y)
+         * Define J(i) = D[i] - D[i-1]
+         * Return the k between 1 and n that maximizes J(k)
+         */
+        return 3; // TODO implement this method
+    }
+
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
         try {
             Scanner fileReader = new Scanner(new File(pathToMeshes + filePath + ".txt")); // Create file reader
