@@ -4,6 +4,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.droshux.rigidbodies.Utils.Cluster;
+
 public class Program {
 
         public static void main(String[] args) {
@@ -45,31 +47,39 @@ public class Program {
                  * Canvas.start();
                  */
 
-                Point p1 = new Point(Utils.RandInt(0, 10), Utils.RandInt(0, 10));
-                Point p2 = new Point(Utils.RandInt(0, 10), Utils.RandInt(0, 10));
-                Point p3 = new Point(Utils.RandInt(0, 10), Utils.RandInt(0, 10));
-
+                // Generate random clustered data
+                final int numClusters = Utils.RandInt(1, 5);
                 List<Point> data = new ArrayList<>();
-                data.add(p1);
-                data.add(p2);
-                data.add(p3);
-
-                for (int i = 0; i < 5; i++) {
-                        data.add(Utils.VectorAdd(new Vector(p1), new Vector(Utils.RandInt(-1, 1), Utils.RandInt(-1, 1)))
-                                        .getEndPoint());
-                        data.add(Utils.VectorAdd(new Vector(p2), new Vector(Utils.RandInt(-1, 1), Utils.RandInt(-1, 1)))
-                                        .getEndPoint());
-                        data.add(Utils.VectorAdd(new Vector(p3), new Vector(Utils.RandInt(-1, 1), Utils.RandInt(-1, 1)))
-                                        .getEndPoint());
+                for (int i = 0; i < numClusters; i++) {
+                        final Point seedPoint = new Point(0, 3 * numClusters);
+                        data.add(seedPoint);
+                        final int extraPoints = Utils.RandInt(0, 5);
+                        for (int j = 0; j < extraPoints; j++) {
+                                int xOffset = 0;
+                                int yOffset = 0;
+                                while (xOffset == 0 && yOffset == 0) {
+                                        xOffset = Utils.RandInt(-1, 1);
+                                        yOffset = Utils.RandInt(-1, 1);
+                                }
+                                System.out.println("Offsets found");
+                                data.add(Utils.VectorAdd(new Vector(seedPoint), new Vector(xOffset, yOffset))
+                                                .getEndPoint());
+                        }
+                        System.out.println("Cluster built");
                 }
                 data = Utils.removeDuplicates(data);
-                for (Point p : data) {
-                        System.out.println(p);
+                System.out.println("Clusters finished");
+
+                // Find clusters
+                final int K = Utils.optimalK(data, 6);
+                Utils.Cluster[] clusters = new Utils.Cluster[K];
+                clusters = Utils.Kmeans(data, K);
+                for (Cluster C : clusters) {
+                        System.out.println(C.Centroid());
+                        System.out.println(C.Distortion());
+                        System.out.println(C.clusterPoints.size());
+                        System.out.println();
                 }
-                System.out.println("CLUSTERING.......");
-                Utils.Cluster[] cl = Utils.Kmeans(data, 3);
-                for (Utils.Cluster C : cl) {
-                        System.out.println(C);
-                }
+                System.out.println("Done!");
         }
 }

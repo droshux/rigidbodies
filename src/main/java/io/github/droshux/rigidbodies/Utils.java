@@ -136,7 +136,7 @@ public class Utils {
 
     // Code stolen from:
     // https://www.geeksforgeeks.org/java-program-to-calculate-standard-deviation/
-    private double standardDeviation(double[] arr) {
+    private static double standardDeviation(double[] arr) {
         double sum = 0;
         double mean = 0;
         double standardDeviation = 0;
@@ -144,11 +144,6 @@ public class Utils {
         double res = 0;
 
         int n = arr.length;
-
-        System.out.println("Elements are:");
-        for (int i = 0; i < n; i++) {
-            System.out.println(arr[i]);
-        }
 
         for (int i = 0; i < n; i++) {
             sum = sum + arr[i];
@@ -168,7 +163,7 @@ public class Utils {
     }
 
     // From: https://en.wikipedia.org/wiki/Mahalanobis_distance
-    private double MahanalobisDistance(Point p, Cluster C) {
+    private static double MahanalobisDistance(Point p, Cluster C) {
         double[] distances = new double[C.clusterPoints.size()];
         for (int i = 0; i < distances.length; i++) {
             distances[i] = C.clusterPoints.get(i).DistanceTo(C.Centroid());
@@ -178,20 +173,42 @@ public class Utils {
     }
 
     // https://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
-    public int optimalK(List<Point> points) {
+    public static int optimalK(List<Point> points, int MaxK) {
         /*
-         * JumpMethod(X):
          * Let Y = (p/2)
          * Init a list D, of size n+1
          * Let D[0] = 0
          * For k = 1 ... n:
-         * Cluster X with k clusters (e.g., with k-means)
-         * Let d = Distortion of the resulting clustering
-         * D[k] = d^(-Y)
+         * --> Cluster X with k clusters (e.g., with k-means)
+         * --> Let d = Distortion of the resulting clustering
+         * --> D[k] = d^(-Y)
          * Define J(i) = D[i] - D[i-1]
          * Return the k between 1 and n that maximizes J(k)
          */
-        return 3; // TODO implement this method
+        double[] D = new double[MaxK + 1];
+        D[0] = 0;
+        for (int k = 1; k <= MaxK; k++) {
+            Cluster[] clusters = Kmeans(points, k);
+            double d = 0;
+            for (Cluster C : clusters) {
+                d += C.Distortion();
+            }
+            d /= clusters.length;
+            D[k] = Math.pow(d, -1);
+        }
+        double[] J = new double[D.length + 1];
+        for (int i = 1; i < D.length; i++) {
+            J[i] = D[i - 1] - D[i];
+        }
+        int bestK = 1;
+        double maxJ = J[1];
+        for (int kPlusOne = 1; kPlusOne < J.length; kPlusOne++) {
+            if (J[kPlusOne] > maxJ) {
+                maxJ = J[kPlusOne];
+                bestK = kPlusOne - 1;
+            }
+        }
+        return bestK; // TODO test this method
     }
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {
@@ -231,7 +248,9 @@ public class Utils {
     public static class Cluster {
         public List<Point> clusterPoints;
         private Point centroid;
-        private boolean needsUpdate = true;
+        private boolean centroidNeedsUpdate = true;
+        private double distortion;
+        private boolean distortionNeedsUpdate = true;
 
         public Cluster(Point initPoint) {
             clusterPoints = new ArrayList<>();
@@ -240,12 +259,25 @@ public class Utils {
 
         public void addPoint(Point p) {
             clusterPoints.add(p);
-            needsUpdate = true;
+            centroidNeedsUpdate = true;
         }
 
         public void removePoint(Point p) {
             clusterPoints.remove(p);
-            needsUpdate = true;
+            centroidNeedsUpdate = true;
+        }
+
+        public double Distortion() {
+            if (distortionNeedsUpdate) {
+                double sum = 0;
+                for (Point p : clusterPoints) {
+                    sum += MahanalobisDistance(p, this);
+                }
+                sum /= clusterPoints.size();
+                distortion = sum;
+                distortionNeedsUpdate = false;
+            }
+            return distortion;
         }
 
         /**
@@ -256,31 +288,23 @@ public class Utils {
             double[] distances = new double[clusterPoints.size()];
             double mean = 0;
             for (int i = 0; i < distances.length; i++) {
-                distances[i] = clusterPoints.get(i).DistanceTo(centroid);
+                distances[i] = clusterPoints.get(i).DistanceTo(Centroid());
                 mean += distances[i];
             }
             mean /= distances.length;
-            /*
-             * double standardDeviation = 0;
-             * for (int i = 0; i < distances.length; i++) {
-             * standardDeviation += (distances[i] - mean) * (distances[i] - mean);
-             * }
-             * standardDeviation = Math.sqrt(standardDeviation / distances.length);
-             */
             List<Point> newClusterPoints = new ArrayList<>();
             for (int i = 0; i < distances.length; i++) {
                 if (distances[i] <= leniency * mean) {
                     newClusterPoints.add(clusterPoints.get(i));
-                } else
-                    System.out.println("Error corrected!");
+                }
             }
             clusterPoints = new ArrayList<>();
             clusterPoints.addAll(newClusterPoints);
-            needsUpdate = true;
+            centroidNeedsUpdate = true;
         }
 
         public Point Centroid() {
-            if (needsUpdate) {
+            if (centroidNeedsUpdate) {
                 double x = 0;
                 double y = 0;
                 for (Point p : clusterPoints) {
@@ -290,7 +314,7 @@ public class Utils {
                 x /= clusterPoints.size();
                 y /= clusterPoints.size();
                 centroid = new Point(x, y);
-                needsUpdate = false;
+                centroidNeedsUpdate = false;
                 return new Point(x, y);
             } else {
                 return centroid;
