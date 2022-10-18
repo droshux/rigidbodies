@@ -112,9 +112,22 @@ public class Canvas extends java.awt.Canvas implements Runnable {
 
         if (CollisionPairs.size() > 0) {
             for (RigidBody[] rbA : CollisionPairs) {
-                List<Point> cPoints = narrowPhase(rbA[0], rbA[1]);
-                if (cPoints.size() > 0)
-                    System.out.println(cPoints.size());
+                List<Point> cPoints = Utils.removeDuplicates(narrowPhase(rbA[0], rbA[1]));
+                if (cPoints.size() > 0) {
+                    System.out.println("RB1 INVOLVED: " + rbA[0].toString());
+                    System.out.println("RB2 INVOLVED: " + rbA[1].toString());
+                    System.out.println("Running K means on " + cPoints.size() + " points:");
+                    for (Point p : cPoints)
+                        System.out.println("    " + p.toString());
+                    final int K = Utils.optimalK(cPoints, cPoints.size());
+                    System.out.println("??????????????????? K: " + K + " ???????????????????");
+                    Utils.Cluster[] clusters = Utils.Kmeans(cPoints, K);
+                    rbA[0].Velocity = new Vector();
+                    rbA[0].Position = new Point(100, 100);
+                    for (Utils.Cluster C : clusters)
+                        System.out.println("Size: " + C.clusterPoints.size() + "\nCentroid: " + C.Centroid() + "\n");
+                }
+
             }
         }
     }

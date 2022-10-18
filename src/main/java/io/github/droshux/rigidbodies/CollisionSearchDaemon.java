@@ -33,7 +33,8 @@ public class CollisionSearchDaemon {
 
 				// Check the point
 				final Point checkPoint = new Point(x, y);
-				if (rb1.contains(checkPoint) && rb2.contains(checkPoint)) {
+				if (rb1.contains(checkPoint)
+						&& rb2.contains(checkPoint)) {
 					// If this is the final generation add the point to the list
 					if (this.generation == canvasRef.COLLISION_DEPTH) {
 						outputPoints.add(checkPoint);

@@ -94,10 +94,14 @@ public class Utils {
             List<Point> startPoints = new ArrayList<>();
             for (int i = 0; i < K; i++) {
                 if (output[i] == null) {
-                    Point InitialPoint = points.get(RandInt(0, points.size() - 1));
-                    while (startPoints.contains(InitialPoint)) {
-                        InitialPoint = points.get(RandInt(0, points.size() - 1));
-                    }
+                    /*
+                     * Point InitialPoint = points.get(RandInt(0, points.size() - 1));
+                     * while (startPoints.contains(InitialPoint)) {
+                     * InitialPoint = points.get(RandInt(0, points.size() - 1));
+                     * }
+                     */
+                    Point InitialPoint = points.get(0);
+                    // System.out.println(InitialPoint);
                     startPoints.add(InitialPoint);
                     output[i] = new Cluster(InitialPoint);
                 } else {
@@ -173,7 +177,7 @@ public class Utils {
     }
 
     // https://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
-    public static int optimalK(List<Point> points, int MaxK) {
+    public static int optimalK(List<Point> points, int MaxK) { // TODO THIS METHOD IS BUSTED (Always returns max)
         /*
          * Let Y = (p/2)
          * Init a list D, of size n+1
@@ -208,7 +212,7 @@ public class Utils {
                 bestK = kPlusOne - 1;
             }
         }
-        return bestK; // TODO test this method
+        return bestK;
     }
 
     public static Triangle @NotNull [] getMeshFromFile(String filePath) {

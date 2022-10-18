@@ -7,7 +7,7 @@ import java.util.List;
 public class RigidBody {
     public String id;
     public Triangle[] Collider;
-    public Point[] BoundingBox = new Point[2]; // Axis aligned bounding box in world space. [0] is bottom left and [1]
+    public Point[] BoundingBox = new Point[2]; // Axis aligned bounding box in WORLD SPACE. [0] is bottom left and [1]
                                                // is top right
     public Point Position;
     public double Mass; // In kilograms
@@ -182,7 +182,6 @@ public class RigidBody {
 
         for (Triangle t : this.Collider) {
             output = t.contains(WorldToLocalSpace(p));
-            // System.out.println("CONTAINS" + output);
             if (output)
                 break;
         }
@@ -206,6 +205,20 @@ public class RigidBody {
     @Override
     public int hashCode() {
         return Objects.hash(id, Mass, MomentOfInertia, UseGravity, Colour, elasticity, rigidity);
+    }
+
+    @Override
+    public String toString() {
+        String out = id + ": \n    Position: " + Position.toString();
+        List<Point> Points = new ArrayList<>();
+        for (Triangle t : Collider)
+            for (Point p : t.points)
+                Points.add(p);
+
+        Points = Utils.removeDuplicates(Points);
+        for (Point p : Points)
+            out += ("\n        " + LocalToWorldSpace(p).toString());
+        return out;
     }
 
     public static class LocalForce {

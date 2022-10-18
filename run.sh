@@ -1,0 +1,1 @@
+cd /home/droshux/Programming/Java/rigidbodies ; /usr/bin/env /usr/lib/jvm/java-18-openjdk/bin/java -XX:+ShowCodeDetailsInExceptionMessages @/tmp/cp_32me3rtww4hzuo4how53b5buq.argfile io.github.droshux.rigidbodies.Program 
