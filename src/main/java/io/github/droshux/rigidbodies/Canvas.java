@@ -112,7 +112,7 @@ public class Canvas extends java.awt.Canvas implements Runnable {
 
         if (CollisionPairs.size() > 0) {
             for (RigidBody[] rbA : CollisionPairs) {
-                List<Point> cPoints = Utils.removeDuplicates(narrowPhase(rbA[0], rbA[1]));
+                List<Point> cPoints = narrowPhase(rbA[0], rbA[1]);
                 if (cPoints.size() > 0) {
                     System.out.println("RB1 INVOLVED: " + rbA[0].toString());
                     System.out.println("RB2 INVOLVED: " + rbA[1].toString());
