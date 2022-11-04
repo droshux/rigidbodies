@@ -1,17 +1,17 @@
 package io.github.droshux.rigidbodies;
 
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 public class Utils {
 
@@ -87,49 +87,59 @@ public class Utils {
     }
 
     public static Cluster[] Kmeans(List<Point> points, int K) {
+
         Cluster[] output = new Cluster[K];
         Cluster[] previous = new Cluster[K];
+        List<Cluster> prev;
+        List<Cluster> outP;
         do {
-            // Create the clusters based on random points
             List<Point> startPoints = new ArrayList<>();
+
+            // Create the clusters based on random points
             for (int i = 0; i < K; i++) {
+                // If this is the first iteration:
                 if (output[i] == null) {
-                    /*
-                     * Point InitialPoint = points.get(RandInt(0, points.size() - 1));
-                     * while (startPoints.contains(InitialPoint)) {
-                     * InitialPoint = points.get(RandInt(0, points.size() - 1));
-                     * }
-                     */
-                    Point InitialPoint = points.get(0);
-                    // System.out.println(InitialPoint);
+                    // Select K unique points from points...
+                    Point InitialPoint;
+                    do {
+                        InitialPoint = points.get(Utils.RandInt(0, points.size() - 1));
+                    } while (startPoints.contains(InitialPoint));
                     startPoints.add(InitialPoint);
+                    // ...and use them as the seeds for the first generation
                     output[i] = new Cluster(InitialPoint);
-                } else {
-                    output[i] = new Cluster(previous[i].Centroid());
+                } else
+                // On all other iterations:
+                {
+                    // Use the previous centroids as seeds for the next generation
+                    final Point nextSeed = previous[i].Centroid();
+                    output[i] = new Cluster(nextSeed);
+                    startPoints.add(nextSeed);
                 }
             }
 
             // Assign all points to their nearest cluster
             for (Point p : points) {
-                if (!startPoints.contains(p)) {
+                if (!startPoints.contains(p)) { // If they aren't already a seed point
                     double minDistance = Double.MAX_VALUE;
-                    Cluster bestCluster = output[0];
+                    Cluster bestCluster = null;
                     for (Cluster C : output) {
                         if (p.DistanceTo(C.Centroid()) < minDistance) {
-                            minDistance = p.DistanceTo(C.Centroid());
+                            minDistance = p.DistanceTo(C.Centroid()); // The best cluster is the cluster with the
+                                                                      // closest euclidian distance to the centroid
                             bestCluster = C;
                         }
                     }
+                    // Add the point to the best possible cluster
                     bestCluster.addPoint(p);
                 }
             }
 
+            // Convert to lists
+            prev = new ArrayList<>(Arrays.asList(previous));
+            outP = new ArrayList<>(Arrays.asList(output));
+
             // If nothing has changed: exit the loop
-            List<Cluster> prev = new ArrayList<>(Arrays.asList(previous));
-            List<Cluster> outP = new ArrayList<>(Arrays.asList(output));
-            if (!(prev.containsAll(outP) && outP.containsAll(prev)))
-                break;
-        } while (true);
+        } while ((prev.containsAll(outP) && outP.containsAll(prev)));
 
         for (int i = 0; i < output.length; i++) {
             output[i].correctErrors(1.5);
@@ -177,7 +187,7 @@ public class Utils {
     }
 
     // https://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
-    public static int optimalK(List<Point> points, int MaxK) { // TODO THIS METHOD IS BUSTED (Always returns max)
+    public static int optimalK(List<Point> points, int MaxK) { // TODO THIS METHOD IS BUSTED
         /*
          * Let Y = (p/2)
          * Init a list D, of size n+1
@@ -198,9 +208,11 @@ public class Utils {
                 d += C.Distortion();
             }
             d /= clusters.length;
-            D[k] = Math.pow(d, -1);
+            D[k] = Math.pow(d, -1); // 1 over d
+            // D[k] = d;
         }
-        double[] J = new double[D.length + 1];
+
+        double[] J = new double[D.length];
         for (int i = 1; i < D.length; i++) {
             J[i] = D[i - 1] - D[i];
         }
@@ -212,6 +224,17 @@ public class Utils {
                 bestK = kPlusOne - 1;
             }
         }
+
+        /*
+         * int bestK = 1;
+         * double minD = Double.MAX_VALUE;
+         * for (int i = 1; i < D.length; i++) {
+         * if (D[i] < minD) {
+         * minD = D[i];
+         * bestK = i;
+         * }
+         * }
+         */
         return bestK;
     }
 
@@ -276,6 +299,7 @@ public class Utils {
                 double sum = 0;
                 for (Point p : clusterPoints) {
                     sum += MahanalobisDistance(p, this);
+                    // sum += p.DistanceTo(this.Centroid());
                 }
                 sum /= clusterPoints.size();
                 distortion = sum;
