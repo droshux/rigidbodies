@@ -87,11 +87,16 @@ public class Utils {
     }
 
     public static Cluster[] Kmeans(List<Point> points, int K) {
+        // If K is 1 just put every point into one cluster
+        if (K == 1) {
+            return new Cluster[] { new Cluster(points) };
+        }
 
         Cluster[] output = new Cluster[K];
         Cluster[] previous = new Cluster[K];
-        List<Cluster> prev;
-        List<Cluster> outP;
+        boolean changed = true;
+        int iterationCount = 0;
+
         do {
             List<Point> startPoints = new ArrayList<>();
 
@@ -134,16 +139,47 @@ public class Utils {
                 }
             }
 
-            // Convert to lists
-            prev = new ArrayList<>(Arrays.asList(previous));
-            outP = new ArrayList<>(Arrays.asList(output));
+            if (iterationCount > 0) { // If this isn't the first iteration (hopefully) remove the original seed point
+                // from each cluster
+                for (int i = 0; i < K; i++) {
+                    if (output[i].clusterPoints.size() > 1) // avoid empty clusters
+                        output[i].removePoint(startPoints.get(i));
+                }
 
-            // If nothing has changed: exit the loop
-        } while ((prev.containsAll(outP) && outP.containsAll(prev)));
+                // Convert to lists
+                final List<Cluster> prev = new ArrayList<>(Arrays.asList(previous));
+                final List<Cluster> outP = new ArrayList<>(Arrays.asList(output));
+                // changed = !(prev.containsAll(outP) && outP.containsAll(prev));
 
-        for (int i = 0; i < output.length; i++) {
-            output[i].correctErrors(1.5);
-        }
+                // Custom check for changes (runs in O(n^2) though)
+                changed = false;
+                for (Cluster C_out : outP) {
+                    boolean matchFound = false;
+                    // Check if any of the previous clusters are the same as the current one
+                    for (Cluster C_prev : prev) {
+                        if (C_out.equals(C_prev)) { // Cluter.equals() checks cluterpoints match
+                            matchFound = true;
+                            break;
+                        } else
+                            matchFound = false;
+
+                    }
+                    // If a match isn't found the clustering has changed and we can stop checking
+                    if (!matchFound) {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            // If this has tried more than twice the number of points times break
+            if (iterationCount > 2 * points.size())
+                break;
+
+            // If something has changed or this is the first iteration continue the loop
+            previous = output.clone();
+            iterationCount++;
+        } while (changed);
 
         return output;
     }
@@ -187,7 +223,7 @@ public class Utils {
     }
 
     // https://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
-    public static int optimalK(List<Point> points, int MaxK) { // TODO THIS METHOD IS BUSTED
+    public static int optimalK(List<Point> points, int MaxK) {
         /*
          * Let Y = (p/2)
          * Init a list D, of size n+1
@@ -214,14 +250,14 @@ public class Utils {
 
         double[] J = new double[D.length];
         for (int i = 1; i < D.length; i++) {
-            J[i] = D[i - 1] - D[i];
+            J[i] = D[i] - D[i - 1];
         }
         int bestK = 1;
         double maxJ = J[1];
-        for (int kPlusOne = 1; kPlusOne < J.length; kPlusOne++) {
-            if (J[kPlusOne] > maxJ) {
-                maxJ = J[kPlusOne];
-                bestK = kPlusOne - 1;
+        for (int kTest = 1; kTest < J.length; kTest++) {
+            if (J[kTest] > maxJ) {
+                maxJ = J[kTest];
+                bestK = kTest;
             }
         }
 
@@ -282,6 +318,10 @@ public class Utils {
         public Cluster(Point initPoint) {
             clusterPoints = new ArrayList<>();
             clusterPoints.add(initPoint);
+        }
+
+        public Cluster(List<Point> initPoints) {
+            clusterPoints = new ArrayList<>(initPoints);
         }
 
         public void addPoint(Point p) {
@@ -353,18 +393,15 @@ public class Utils {
             if (other == null) {
                 return false;
             }
-
-            if (clusterPoints.size() != other.clusterPoints.size())
-                return false;
-
-            if (Centroid() != other.Centroid())
-                return false;
-
-            for (Point p : clusterPoints)
-                if (!other.clusterPoints.contains(p))
-                    return false;
-
-            return true;
+            return Centroid().equals(other.Centroid());
+            /*
+             * 
+             * if (clusterPoints.size() != other.clusterPoints.size())
+             * return false;
+             * 
+             * if (!clusterPoints.containsAll(other.clusterPoints))
+             * return false;
+             */
         }
 
         public String toString() {
