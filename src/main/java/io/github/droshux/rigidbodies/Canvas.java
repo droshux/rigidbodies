@@ -138,26 +138,32 @@ public class Canvas extends java.awt.Canvas implements Runnable {
         final Point TR = new Point(Math.max(rb1.BoundingBox[1].x, rb2.BoundingBox[1].x),
                 Math.max(rb1.BoundingBox[1].y, rb2.BoundingBox[1].y));
 
-        List<CollisionSearchDaemon> daemonList = new ArrayList<>(); // DEMON CORE!!
-        List<CollisionSearchDaemon> daemonBuffer = new ArrayList<>();
-        List<Point> collisionPoints = new ArrayList<>();
+        return CollisionSearchDaemon.SpaceSearch(BL, TR, 0, this, rb1, rb2);
+        /*
+         * List<CollisionSearchDaemon> daemonList = new ArrayList<>(); // DEMON CORE!!
+         * List<CollisionSearchDaemon> daemonBuffer = new ArrayList<>();
+         * List<Point> collisionPoints = new ArrayList<>();
+         * 
+         * daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0));
+         * while (daemonList.size() > 0) {
+         * daemonBuffer = new ArrayList<>();
+         * // System.out.println("DAEMON LIST LENGTH: " + daemonList.size());
+         * for (int i = 0; i < daemonList.size(); i++) {
+         * CollisionSearchDaemon daemon = daemonList.get(i); // Get a daemon from the
+         * list
+         * final CollisionSearchDaemon.DaemonResults sResults = daemon.Search(); //
+         * Search space for all points
+         * daemonBuffer.addAll(sResults.daemonBuffer()); // take the new generation out
+         * of the record
+         * collisionPoints.addAll(sResults.outputPoints()); // take the collision point
+         * out the record
+         * }
+         * 
+         * // Overwrite the daemons with the buffer
+         * daemonList = new ArrayList<>(daemonBuffer);
+         * }
+         */
 
-        daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0));
-        while (daemonList.size() > 0) {
-            daemonBuffer = new ArrayList<>();
-            // System.out.println("DAEMON LIST LENGTH: " + daemonList.size());
-            for (int i = 0; i < daemonList.size(); i++) {
-                CollisionSearchDaemon daemon = daemonList.get(i); // Get a daemon from the list
-                final CollisionSearchDaemon.DaemonResults sResults = daemon.Search(); // Search space for all points
-                daemonBuffer.addAll(sResults.daemonBuffer()); // take the new generation out of the record
-                collisionPoints.addAll(sResults.outputPoints()); // take the collision point out the record
-            }
-
-            // Overwrite the daemons with the buffer
-            daemonList = new ArrayList<>(daemonBuffer);
-        }
-
-        return collisionPoints;
     }
 
     @SuppressWarnings("BusyWait")
