@@ -1,15 +1,14 @@
 package io.github.droshux.rigidbodies;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+//import java.util.ArrayList;
+//import java.util.Arrays;
 
 public class Program {
 
         public static void main(String[] args) {
 
-                Canvas Canvas = new Canvas(640, 480, 5, 3); // 15 is enough data points!
+                Canvas Canvas = new Canvas(640, 480, 10, 3); // 15 is enough data points!
                 // Canvas.displayTime = true;
 
                 RigidBody rb1 = new RigidBodyBuilder(Canvas)
@@ -32,16 +31,18 @@ public class Program {
                                 .setColliderFile("floor")
                                 .createRigidBody();
 
-                // Canvas.start();
+                Canvas.start();
 
-                System.out.println(Utils.optimalK(new ArrayList<>(Arrays.asList(new Point[] {
-                                new Point(-0.8, -0.45),
-                                new Point(-0.80001, -0.450001),
-                                new Point(-0.80002, -0.450001),
-                                new Point(0.2, -0.45),
-                                new Point(0.20001, -0.450001),
-                                new Point(0.20002, -0.450002)
-                })), 6));
+                /*
+                 * System.out.println(Utils.optimalK(new ArrayList<>(Arrays.asList(new Point[] {
+                 * new Point(-0.8, -0.45),
+                 * new Point(-0.80001, -0.450001),
+                 * new Point(-0.80002, -0.450001),
+                 * new Point(0.2, -0.45),
+                 * new Point(0.20001, -0.450001),
+                 * new Point(0.20002, -0.450002)
+                 * })), 6));
+                 */
 
         }
 }
