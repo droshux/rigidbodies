@@ -8,7 +8,7 @@ public class Program {
 
         public static void main(String[] args) {
 
-                Canvas Canvas = new Canvas(640, 480, 10, 3); // 15 is enough data points!
+                Canvas Canvas = new Canvas(640, 480, 10, 1); // 15 is enough data points!
                 // Canvas.displayTime = true;
 
                 RigidBody rb1 = new RigidBodyBuilder(Canvas)
