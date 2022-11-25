@@ -182,7 +182,8 @@ public class RigidBody {
         boolean output = false;
 
         for (Triangle t : this.Collider) {
-            output = t.contains(WorldToLocalSpace(p));
+            final Point worldPoint = WorldToLocalSpace(p);
+            output = t.contains(worldPoint);
             if (output)
                 break;
         }
