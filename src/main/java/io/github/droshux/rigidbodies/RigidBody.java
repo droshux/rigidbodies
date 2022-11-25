@@ -47,6 +47,7 @@ public class RigidBody {
         if (UseGravity)
             Weight = new LocalForce(Utils.VectorScalarMultiply(Utils.g, Mass), new Point(0, 0), 1);
         MomentOfInertia = calculateI();
+        UpdateBoundingBox();
         canvas.Objects.add(this);
     }
 

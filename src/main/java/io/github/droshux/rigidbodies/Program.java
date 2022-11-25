@@ -8,15 +8,15 @@ public class Program {
 
         public static void main(String[] args) {
 
-                Canvas Canvas = new Canvas(640, 480, 10, 1); // 15 is enough data points!
+                Canvas Canvas = new Canvas(640, 480, 5, 1); // 15 is enough data points!
                 // Canvas.displayTime = true;
 
                 RigidBody rb1 = new RigidBodyBuilder(Canvas)
                                 .setId("test1")
                                 .setMass(5)
-                                .setPosition(new Point(0, 0))
+                                .setPosition(new Point(0, -3))
                                 .setColour(Color.BLUE)
-                                .setColliderFile("mesh2")
+                                .setColliderFile("complex")
                                 .setGravity(true)
                                 .setElasticity(1)
                                 .setRigidity(0)
@@ -33,16 +33,13 @@ public class Program {
 
                 Canvas.start();
 
-                /*
-                 * System.out.println(Utils.optimalK(new ArrayList<>(Arrays.asList(new Point[] {
-                 * new Point(-0.8, -0.45),
-                 * new Point(-0.80001, -0.450001),
-                 * new Point(-0.80002, -0.450001),
-                 * new Point(0.2, -0.45),
-                 * new Point(0.20001, -0.450001),
-                 * new Point(0.20002, -0.450002)
-                 * })), 6));
-                 */
-
+                for (double y = rb1.BoundingBox[0].y; y <= rb1.BoundingBox[1].y; y += (rb1.BoundingBox[1].y-rb1.BoundingBox[0].y)/100) {
+                        for (double x = rb1.BoundingBox[0].x; x <= rb1.BoundingBox[1].x; x += (rb1.BoundingBox[1].x-rb1.BoundingBox[0].x)/100) {
+                                if (rb1.contains(new Point(x, y))) {
+                                        System.out.print('1');
+                                } else System.out.print('0');
+                        }
+                        System.out.print('\n');
+                }
         }
 }
