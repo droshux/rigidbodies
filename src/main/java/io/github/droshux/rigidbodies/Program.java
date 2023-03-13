@@ -4,31 +4,30 @@ import java.awt.*;
 
 public class Program {
 
-        public static void main(String[] args) {
+    public static void main(String[] args) {
 
-                Canvas Canvas = new Canvas(640, 480, 6, 1); // 15 is enough data points!
-                // Canvas.displayTime = true;
+                System.setProperty("tstPink", "0XFF80C8");
+                Canvas Canvas = new Canvas(640, 480, 16, 1, io.github.droshux.rigidbodies.Canvas.CollisionMode.Full); // 15 is enough data points!
+                Canvas.pixelsPerMeter = 15;
 
-                RigidBody rb1 = new RigidBodyBuilder(Canvas)
-                                .setId("test1")
-                                .setMass(5)
-                                .setPosition(new Point(0, 0))
-                                .setColour(Color.BLUE)
-                                .setColliderFile("mesh2")
-                                .setGravity(true)
-                                .setElasticity(1)
-                                .setRigidity(0)
-                                .createRigidBody();
-                rb1.Rotate(Math.PI / 2);
-                new RigidBodyBuilder(Canvas)
-                                .setId("floor")
-                                .setMass(1000)
-                                .setPosition(new Point(0, -5))
-                                .setColour(Color.DARK_GRAY)
-                                .setGravity(false)
-                                .setColliderFile("floor")
-                                .createRigidBody();
+               RigidBody testRb = new RigidBodyBuilder(Canvas)
+                       .setId("Test Object")
+                       .setColliderFile("testmesh")
+                       .setColour(Color.getColor("tstPink"))
+                       .setMass(1)
+                       .setGravity(true)
+                       .setPosition(new Point(0,0))
+                       .createRigidBody();
 
-                Canvas.start();
+               RigidBody spear = new RigidBodyBuilder(Canvas)
+                       .setId("Platform")
+                       .setColliderFile("floor")
+                       .setColour(Color.RED)
+                       .setPosition(new Point(0,-10))
+                       .setMass(1)
+                       .setGravity(false)
+                       .createRigidBody();
+               System.out.println("BEGIN SIMULATION!");
+               Canvas.start();
         }
 }

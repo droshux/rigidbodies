@@ -20,19 +20,27 @@ public class Canvas extends java.awt.Canvas implements Runnable {
     public final int COLLISION_DEPTH;
 
     private boolean running = false;
+    private final CollisionMode mode;
 
     public List<RigidBody> Objects = new ArrayList<>();
     public Point CameraPos = new Point(0, 0);
-    public final int pixelsPerMeter = 25;
+    public int pixelsPerMeter = 25;
     public double timePassed = 0;
     public boolean displayTime = false;
 
-    public Canvas(int W, int H, int B, int D) {
+    public enum CollisionMode {
+        None,
+        Broad,
+        Full
+    }
+
+    public Canvas(int W, int H, int B, int D, CollisionMode m) {
 
         CANVAS_WIDTH = W;
         CANVAS_HEIGHT = H;
         COLLISION_BREADTH = B;
         COLLISION_DEPTH = D;
+        mode = m;
 
         frame = new JFrame("FPS: ~ TPS: ~");
         frame.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -98,37 +106,37 @@ public class Canvas extends java.awt.Canvas implements Runnable {
         }
 
         // Collision Check:
-        // Broad phase
-        List<RigidBody[]> xIntersects = getBroadPhaseCollisionPairs(false);
-        List<RigidBody[]> yIntersects = getBroadPhaseCollisionPairs(true);
-        List<RigidBody[]> CollisionPairs = new ArrayList<>();
-        for (RigidBody[] rbAx : xIntersects) {
-            for (RigidBody[] rbAy : yIntersects) {
-                if (Arrays.stream(rbAx).toList().contains(rbAy[0]) || Arrays.stream(rbAx).toList().contains(rbAy[1])) {
-                    CollisionPairs.add(rbAx);
+        if (mode == CollisionMode.Broad || mode == CollisionMode.Full) {
+            // Broad phase
+            List<RigidBody[]> xIntersects = getBroadPhaseCollisionPairs(false);
+            List<RigidBody[]> yIntersects = getBroadPhaseCollisionPairs(true);
+            List<RigidBody[]> CollisionPairs = new ArrayList<>();
+            for (RigidBody[] rbAx : xIntersects) {
+                for (RigidBody[] rbAy : yIntersects) {
+                    if (Arrays.stream(rbAx).toList().contains(rbAy[0]) || Arrays.stream(rbAx).toList().contains(rbAy[1])) {
+                        CollisionPairs.add(rbAx);
+                    }
                 }
             }
-        }
 
-        if (CollisionPairs.size() > 0) {
-            for (RigidBody[] rbA : CollisionPairs) {
-                List<Point> cPoints = narrowPhase(rbA[0], rbA[1]);
-                if (cPoints.size() > 0) {
-                    System.out.println("RB1 INVOLVED: " + rbA[0].toString());
-                    System.out.println("RB2 INVOLVED: " + rbA[1].toString());
-                    System.out.println("Running K means on " + cPoints.size() + " points:");
-                    for (Point p : cPoints)
-                        System.out.println("    " + p.toString());
-                    final int K = Utils.optimalK(cPoints, cPoints.size());
-                    System.out.println("??????????????????? K: " + K + " ???????????????????");
-                    Utils.Cluster[] clusters = Utils.Kmeans(cPoints, K);
-                    rbA[0].Velocity = new Vector();
-                    rbA[0].Position = new Point(100, 100);
-                    for (Utils.Cluster C : clusters)
-                        System.out.println("Size: " + C.clusterPoints.size() + "\nCentroid: " + C.Centroid() + "\n");
-                }
-
+            //Output objects that collided
+            for (RigidBody[] p : CollisionPairs) {
+                System.out.println(p[0].id + " may have collided with " + p[1].id);
             }
+
+            if (CollisionPairs.size() > 0 && mode == CollisionMode.Full) {
+                for (RigidBody[] rbA : CollisionPairs) {
+                    List<Point> cPoints = narrowPhase(rbA[0], rbA[1]);
+                    if (cPoints.size() > 0) {
+                        System.out.println(rbA[0].id + " and " + rbA[1].id + " collided at:");
+                        final int K = Utils.optimalK(cPoints, cPoints.size());
+                        Utils.Cluster[] clusters = Utils.Kmeans(cPoints, K);
+                        for (Utils.Cluster C : clusters)
+                            System.out.println("    " + C.Centroid());
+                        stop();
+                    } else System.out.println(rbA[0].id + " and " + rbA[1].id + " did not collide.");
+                }
+            } else if (CollisionPairs.size() > 0) stop();
         }
     }
 
@@ -214,7 +222,7 @@ public class Canvas extends java.awt.Canvas implements Runnable {
                 frame.setTitle("FPS: " + fps + " TPS: " + tps);
 
                 secondTime = System.currentTimeMillis() + 1000; // Set the time which we must again update fps/tps (one
-                                                                // second from the current time)
+                                                                // second from the current time
             }
 
             try {
