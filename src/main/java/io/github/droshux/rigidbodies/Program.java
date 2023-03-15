@@ -1,33 +1,31 @@
 package io.github.droshux.rigidbodies;
 
 import java.awt.*;
+import java.util.Arrays;
 
 public class Program {
 
     public static void main(String[] args) {
 
-                System.setProperty("tstPink", "0XFF80C8");
-                Canvas Canvas = new Canvas(640, 480, 16, 1, io.github.droshux.rigidbodies.Canvas.CollisionMode.Full); // 15 is enough data points!
-                Canvas.pixelsPerMeter = 15;
+        Canvas canvas = new Canvas(640, 480, 16, 1, Canvas.CollisionMode.Full);
 
-               RigidBody testRb = new RigidBodyBuilder(Canvas)
-                       .setId("Test Object")
-                       .setColliderFile("testmesh")
-                       .setColour(Color.getColor("tstPink"))
-                       .setMass(1)
-                       .setGravity(true)
-                       .setPosition(new Point(0,0))
-                       .createRigidBody();
+        new RigidBodyBuilder(canvas)
+                .setId("OBJECT")
+                .setColour(Color.RED)
+                .setGravity(true)
+                .setPosition(new Point(0, 10))
+                .setMass(1)
+                .setColliderFile("mesh2")
+                .createRigidBody()
+                .Rotate(Math.PI / 2);
+        new RigidBodyBuilder(canvas)
+                .setId("OBJECT2")
+                .setColliderFile("mesh1")
+                .setPosition(new Point(0, -1))
+                .setColour(Color.GRAY)
+                .createRigidBody();
 
-               RigidBody spear = new RigidBodyBuilder(Canvas)
-                       .setId("Platform")
-                       .setColliderFile("floor")
-                       .setColour(Color.RED)
-                       .setPosition(new Point(0,-10))
-                       .setMass(1)
-                       .setGravity(false)
-                       .createRigidBody();
-               System.out.println("BEGIN SIMULATION!");
-               Canvas.start();
-        }
+
+        canvas.start();
+    }
 }

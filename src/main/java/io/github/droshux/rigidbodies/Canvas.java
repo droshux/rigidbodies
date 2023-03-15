@@ -98,7 +98,6 @@ public class Canvas extends java.awt.Canvas implements Runnable {
 
     private void tick(double delta) {
         timePassed += delta / 100;
-        // Utils.clearScreen();
         if (displayTime)
             System.out.println(Utils.Round(timePassed, 3));
         for (RigidBody rb : Objects) {
@@ -119,8 +118,8 @@ public class Canvas extends java.awt.Canvas implements Runnable {
                 }
             }
 
-            //Output objects that collided
-            for (RigidBody[] p : CollisionPairs) {
+            //Output objects that collided if broad phase only.
+            if (mode == CollisionMode.Broad) for (RigidBody[] p : CollisionPairs) {
                 System.out.println(p[0].id + " may have collided with " + p[1].id);
             }
 
@@ -131,6 +130,8 @@ public class Canvas extends java.awt.Canvas implements Runnable {
                         System.out.println(rbA[0].id + " and " + rbA[1].id + " collided at:");
                         final int K = Utils.optimalK(cPoints, cPoints.size());
                         Utils.Cluster[] clusters = Utils.Kmeans(cPoints, K);
+                        for (Point p : cPoints) System.out.println("    " + p); //Output each point!
+                        System.out.println("Clustering into:");
                         for (Utils.Cluster C : clusters)
                             System.out.println("    " + C.Centroid());
                         stop();
@@ -147,31 +148,6 @@ public class Canvas extends java.awt.Canvas implements Runnable {
                 Math.max(rb1.BoundingBox[1].y, rb2.BoundingBox[1].y));
 
         return CollisionSearchDaemon.SpaceSearch(BL, TR, 0, this, rb1, rb2);
-        /*
-         * List<CollisionSearchDaemon> daemonList = new ArrayList<>(); // DEMON CORE!!
-         * List<CollisionSearchDaemon> daemonBuffer = new ArrayList<>();
-         * List<Point> collisionPoints = new ArrayList<>();
-         * 
-         * daemonList.add(new CollisionSearchDaemon(BL, TR, this, rb1, rb2, 0));
-         * while (daemonList.size() > 0) {
-         * daemonBuffer = new ArrayList<>();
-         * // System.out.println("DAEMON LIST LENGTH: " + daemonList.size());
-         * for (int i = 0; i < daemonList.size(); i++) {
-         * CollisionSearchDaemon daemon = daemonList.get(i); // Get a daemon from the
-         * list
-         * final CollisionSearchDaemon.DaemonResults sResults = daemon.Search(); //
-         * Search space for all points
-         * daemonBuffer.addAll(sResults.daemonBuffer()); // take the new generation out
-         * of the record
-         * collisionPoints.addAll(sResults.outputPoints()); // take the collision point
-         * out the record
-         * }
-         * 
-         * // Overwrite the daemons with the buffer
-         * daemonList = new ArrayList<>(daemonBuffer);
-         * }
-         */
-
     }
 
     @SuppressWarnings("BusyWait")
